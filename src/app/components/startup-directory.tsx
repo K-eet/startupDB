@@ -1,12 +1,6 @@
 'use client';
 
 import type { IntelligentStartupSearchOutput } from '@/ai/flows/intelligent-startup-search';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -73,49 +67,45 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
       </CardHeader>
       <CardContent>
         <div className="border">
-          <Accordion type="single" collapsible className="w-full">
-            <Table>
-              <TableHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-1/4">Name</TableHead>
+                <TableHead className="w-1/4">Industry</TableHead>
+                <TableHead className="w-1/4">Stage</TableHead>
+                <TableHead className="w-1/4">Location</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.length > 0 ? (
+                filteredData.map((startup) => (
+                  <React.Fragment key={startup.name}>
+                    <TableRow>
+                      <TableCell className="font-medium">{startup.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{startup.industry}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{startup.stage}</Badge>
+                      </TableCell>
+                      <TableCell className="truncate">{startup.location}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-2 px-4 border-t">
+                        <p className="text-muted-foreground text-sm">{startup.description}</p>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                ))
+              ) : (
                 <TableRow>
-                  <TableHead className="w-2/5">Name</TableHead>
-                  <TableHead className="w-1/5">Industry</TableHead>
-                  <TableHead className="w-1/5">Stage</TableHead>
-                  <TableHead className="w-1/5">Location</TableHead>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    No results found.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.length > 0 ? (
-                  filteredData.map((startup) => (
-                    <AccordionItem value={startup.name} key={startup.name} asChild>
-                      <TableRow>
-                        <TableCell colSpan={4} className="p-0">
-                          <AccordionTrigger className="w-full p-2 grid grid-cols-5 text-left hover:no-underline">
-                            <div className="col-span-2 font-medium">{startup.name}</div>
-                            <div className="col-span-1">
-                              <Badge variant="secondary">{startup.industry}</Badge>
-                            </div>
-                            <div className="col-span-1">
-                              <Badge variant="outline">{startup.stage}</Badge>
-                            </div>
-                            <div className="col-span-1 truncate">{startup.location}</div>
-                          </AccordionTrigger>
-                          <AccordionContent className="p-4 pt-0">
-                            <p className="text-muted-foreground">{startup.description}</p>
-                          </AccordionContent>
-                        </TableCell>
-                      </TableRow>
-                    </AccordionItem>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                      No results found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Accordion>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>

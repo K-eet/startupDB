@@ -13,6 +13,7 @@ import StartupDirectory from '@/app/components/startup-directory';
 import VCDirectory from '@/app/components/vc-directory';
 import { initialStartups, initialVCFirms } from '@/lib/initial-data';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/app/components/theme-toggle';
 
 function SearchButton() {
   const { pending } = useFormStatus();
@@ -40,20 +41,23 @@ export default function Home() {
   React.useEffect(() => {
     if (state.error) {
       toast({
-        variant: "destructive",
-        title: "Search Error",
+        variant: 'destructive',
+        title: 'Search Error',
         description: state.error,
       });
     }
   }, [state.error, state.timestamp, toast]);
 
   return (
-    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-5xl">
-      <header className="text-center mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">StartupDB</h1>
-        <p className="text-muted-foreground mt-2">
-          Intelligent Search for Startups and Venture Capital
-        </p>
+    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
+      <header className="flex justify-between items-center mb-8">
+        <div className="text-left">
+          <h1 className="text-2xl font-bold tracking-tight">StartupDB</h1>
+          <p className="text-muted-foreground mt-2">
+            Intelligent Search for Startups and Venture Capital
+          </p>
+        </div>
+        <ThemeToggle />
       </header>
 
       <Card className="mb-8">
@@ -76,7 +80,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="startups">Startup Directory</TabsTrigger>
           <TabsTrigger value="vcs">VC Directory</TabsTrigger>
