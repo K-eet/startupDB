@@ -7,7 +7,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -48,8 +47,8 @@ export default function VCDirectory({ data }: VCDirectoryProps) {
                         <TableCell colSpan={2} className="p-0">
                           <AccordionTrigger className="w-full p-2 grid grid-cols-2 text-left hover:no-underline">
                               <span className="font-medium">{vc.name}</span>
-                              <span className="flex items-center text-muted-foreground">
-                                <Mail className="mr-2 h-4 w-4" />
+                              <span className="flex items-center text-muted-foreground break-all">
+                                <Mail className="mr-2 h-4 w-4 shrink-0" />
                                 {vc.contactDetails}
                               </span>
                           </AccordionTrigger>
