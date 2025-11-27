@@ -1,18 +1,11 @@
 'use client';
 
 import type { IntelligentStartupSearchOutput } from '@/ai/flows/intelligent-startup-search';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 type StartupDirectoryProps = {
   data: IntelligentStartupSearchOutput;
@@ -66,46 +59,27 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/4">Name</TableHead>
-                <TableHead className="w-1/4">Industry</TableHead>
-                <TableHead className="w-1/4">Stage</TableHead>
-                <TableHead className="w-1/4">Location</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.length > 0 ? (
-                filteredData.map((startup) => (
-                  <React.Fragment key={startup.name}>
-                    <TableRow>
-                      <TableCell className="font-medium">{startup.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{startup.industry}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{startup.stage}</Badge>
-                      </TableCell>
-                      <TableCell className="truncate">{startup.location}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-2 px-4 border-t">
-                        <p className="text-muted-foreground text-sm">{startup.description}</p>
-                      </TableCell>
-                    </TableRow>
-                  </React.Fragment>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <div className="space-y-4">
+          {filteredData.length > 0 ? (
+            filteredData.map((startup, index) => (
+              <React.Fragment key={startup.name}>
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-xl font-semibold leading-none tracking-tight">{startup.name}</h3>
+                  <p className="text-sm text-muted-foreground">{startup.description}</p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Badge variant="secondary">{startup.industry}</Badge>
+                    <Badge variant="outline">{startup.stage}</Badge>
+                    <Badge variant="outline">{startup.location}</Badge>
+                  </div>
+                </div>
+                {index < filteredData.length - 1 && <Separator />}
+              </React.Fragment>
+            ))
+          ) : (
+            <div className="h-24 text-center content-center">
+              <p>No results found.</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
