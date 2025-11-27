@@ -48,15 +48,15 @@ export default function Home() {
   }, [state.error, state.timestamp, toast]);
 
   return (
-    <main className="container mx-auto p-4 md:p-6 lg:p-8">
+    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-5xl">
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold tracking-tighter">StartupDB</h1>
+        <h1 className="text-2xl font-bold tracking-tight">StartupDB</h1>
         <p className="text-muted-foreground mt-2">
           Intelligent Search for Startups and Venture Capital
         </p>
       </header>
 
-      <Card className="mb-8 border-dashed">
+      <Card className="mb-8">
         <CardContent className="p-4">
           <form action={formAction} className="flex flex-col sm:flex-row gap-4 items-start">
             <div className="w-full">

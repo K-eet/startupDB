@@ -10,9 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ["'Source Code Pro'", 'monospace'],
-        headline: ["'Source Code Pro'", 'monospace'],
-        code: ["'Source Code Pro'", 'monospace'],
+        sans: ["'IBM Plex Mono'", 'monospace'],
+        mono: ["'IBM Plex Mono'", 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -68,8 +67,8 @@ export default {
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'var(--radius)',
+        sm: 'var(--radius)',
       },
       keyframes: {
         'accordion-down': {

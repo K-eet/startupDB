@@ -31,7 +31,7 @@ export default function VCDirectory({ data }: VCDirectoryProps) {
         <CardTitle>Venture Capital Directory</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="border rounded-md">
+        <div className="border">
           <Accordion type="single" collapsible className="w-full">
             <Table>
               <TableHeader>
@@ -46,9 +46,9 @@ export default function VCDirectory({ data }: VCDirectoryProps) {
                     <AccordionItem value={vc.name} key={vc.name} asChild>
                       <TableRow>
                         <TableCell colSpan={2} className="p-0">
-                          <AccordionTrigger className="w-full p-4 grid grid-cols-2 text-left hover:no-underline">
+                          <AccordionTrigger className="w-full p-2 grid grid-cols-2 text-left hover:no-underline">
                               <span className="font-medium">{vc.name}</span>
-                              <span className="flex items-center">
+                              <span className="flex items-center text-muted-foreground">
                                 <Mail className="mr-2 h-4 w-4" />
                                 {vc.contactDetails}
                               </span>

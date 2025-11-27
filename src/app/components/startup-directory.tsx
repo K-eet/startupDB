@@ -72,7 +72,7 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="border rounded-md">
+        <div className="border">
           <Accordion type="single" collapsible className="w-full">
             <Table>
               <TableHeader>
@@ -89,8 +89,8 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
                     <AccordionItem value={startup.name} key={startup.name} asChild>
                       <TableRow>
                         <TableCell colSpan={4} className="p-0">
-                          <AccordionTrigger className="w-full p-4 grid grid-cols-5 text-left hover:no-underline">
-                            <div className="col-span-2">{startup.name}</div>
+                          <AccordionTrigger className="w-full p-2 grid grid-cols-5 text-left hover:no-underline">
+                            <div className="col-span-2 font-medium">{startup.name}</div>
                             <div className="col-span-1">
                               <Badge variant="secondary">{startup.industry}</Badge>
                             </div>
