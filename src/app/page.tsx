@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { searchAction, type SearchState } from '@/app/actions';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,7 @@ export default function Home() {
     timestamp: Date.now(),
   };
 
-  const [state, formAction] = useFormState(searchAction, initialState);
+  const [state, formAction] = useActionState(searchAction, initialState);
   const { toast } = useToast();
 
   React.useEffect(() => {
