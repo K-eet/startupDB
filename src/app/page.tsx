@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Search, Menu, Building, Rocket } from 'lucide-react';
+import { Loader2, Search, Menu, Building, Rocket, Briefcase, CalendarDays, LogIn } from 'lucide-react';
 import StartupDirectory from '@/app/components/startup-directory';
 import VCDirectory from '@/app/components/vc-directory';
 import { initialStartups, initialVCFirms } from '@/lib/initial-data';
@@ -18,6 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -54,6 +55,20 @@ export default function Home() {
     }
   }, [state.error, state.timestamp, toast]);
 
+  const handleMenuClick = (tab: string) => {
+    // For now, we'll just switch the active tab.
+    // In the future, this could navigate to different pages.
+    if (['startups', 'vcs'].includes(tab)) {
+      setActiveTab(tab);
+    } else {
+      // Placeholder for other menu items
+      toast({
+        title: 'Coming Soon!',
+        description: `The "${tab}" feature is not yet implemented.`,
+      });
+    }
+  };
+
   return (
     <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
       <header className="flex justify-between items-center mb-8">
@@ -73,13 +88,27 @@ export default function Home() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setActiveTab('startups')}>
+              <DropdownMenuItem onClick={() => handleMenuClick('startups')}>
                 <Rocket />
                 Startup Directory
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTab('vcs')}>
+              <DropdownMenuItem onClick={() => handleMenuClick('vcs')}>
                 <Building />
                 VC Directory
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleMenuClick('Jobs')}>
+                <Briefcase />
+                Jobs
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
+                <CalendarDays />
+                Events
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleMenuClick('Sign Up/Login')}>
+                <LogIn />
+                Sign Up/Login
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
