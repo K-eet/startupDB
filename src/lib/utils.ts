@@ -12,22 +12,18 @@ export const groupEventsByDate = (events: EventType[]) => {
   const startOfThisWeek = startOfWeek(now, { weekStartsOn: 1 });
   const endOfThisWeek = endOfWeek(now, { weekStartsOn: 1 });
 
-  const groups: { [key: string]: EventType[] } = {
-    Tomorrow: [],
-    'This Week': [],
-    Upcoming: [],
-  };
+  const groups: { [key: string]: EventType[] } = {};
 
   const sortedEvents = [...events].sort((a,b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
 
   sortedEvents.forEach((event) => {
     const eventDate = parseISO(event.date);
     if (isTomorrow(eventDate)) {
+      if (!groups['Tomorrow']) groups['Tomorrow'] = [];
       groups.Tomorrow.push(event);
     } else if (isWithinInterval(eventDate, { start: startOfThisWeek, end: endOfThisWeek })) {
-      if (!isTomorrow(eventDate)) { // Avoid duplicating 'Tomorrow' in 'This Week'
+        if (!groups['This Week']) groups['This Week'] = [];
         groups['This Week'].push(event);
-      }
     } else if (eventDate > endOfThisWeek) {
         // Group upcoming events by month
         const month = format(eventDate, 'MMMM yyyy');
@@ -35,13 +31,17 @@ export const groupEventsByDate = (events: EventType[]) => {
             groups[month] = [];
         }
         groups[month].push(event);
+    } else {
+        // For any other case, like today but not tomorrow, or past events
+        const month = format(eventDate, 'MMMM yyyy');
+        if (!groups[month]) {
+          groups[month] = [];
+        }
+        if (!groups[month].find(e => e.id === event.id)) {
+            groups[month].push(event);
+        }
     }
   });
-  
-  // Clean up empty default groups if they are not used.
-  if(groups['This Week'].length === 0) delete groups['This Week'];
-  if(groups.Upcoming.length === 0) delete groups.Upcoming;
-
 
   return Object.fromEntries(Object.entries(groups).filter(([, events]) => events.length > 0));
 };

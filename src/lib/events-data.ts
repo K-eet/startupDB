@@ -1,5 +1,3 @@
-import { isTomorrow, isThisWeek, parseISO } from 'date-fns';
-
 export type EventCategory = 'Meetup' | 'Conference/Summit' | 'Talk/Panel' | 'Demo Day/Pitch' | 'Others';
 
 export const eventCategories = {
@@ -21,19 +19,10 @@ export type EventType = {
   tags: string[];
 };
 
-// Get a future date to ensure events show up
-const getFutureDate = (days: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-}
-
-
-export const initialEvents: EventType[] = [
+export const initialEvents: Omit<EventType, 'date'>[] = [
   {
     id: 1,
     title: 'Seed Funding Office Hours',
-    date: getFutureDate(1),
     time: 'Tue, 23 Dec ・ 10am - 1pm',
     location: 'Online',
     organizer: 'Endeavor Malaysia',
@@ -43,7 +32,6 @@ export const initialEvents: EventType[] = [
   {
     id: 2,
     title: 'Design Thinking for Founders',
-    date: getFutureDate(2),
     time: 'Wed, 24 Dec ・ 2pm - 5pm',
     location: 'WORQ, KL Sentral',
     organizer: 'StartupKL',
@@ -53,7 +41,6 @@ export const initialEvents: EventType[] = [
   {
     id: 3,
     title: 'Full-Stack Developer Bootcamp Final Pitch',
-    date: getFutureDate(4),
     time: '27-29 Dec ・ 10am (Day 1) - 5pm (Final day)',
     location: 'Online',
     organizer: 'NEXT Academy',
@@ -63,7 +50,6 @@ export const initialEvents: EventType[] = [
   {
     id: 4,
     title: 'New Year Founders Gathering',
-    date: getFutureDate(10),
     time: 'Sat, 3 Jan ・ 6pm - 9pm',
     location: 'The Alley, Changkat',
     organizer: 'Malaysian Founders Network',
@@ -73,7 +59,6 @@ export const initialEvents: EventType[] = [
   {
     id: 5,
     title: 'AI in FinTech Summit',
-    date: getFutureDate(12),
     time: 'Sun, 10 Jan ・ 9am - 4pm',
     location: 'Connexion Conference & Event Centre',
     organizer: 'Fintech Association of Malaysia',
@@ -83,7 +68,6 @@ export const initialEvents: EventType[] = [
   {
     id: 6,
     title: 'VC & Founder Networking Night',
-    date: getFutureDate(5),
     time: 'Fri, 28 Dec ・ 7pm - 10pm',
     location: 'Private Rooftop Bar, Bangsar',
     organizer: 'VC Connect',
@@ -93,7 +77,6 @@ export const initialEvents: EventType[] = [
   {
     id: 7,
     title: 'Asia EdTech Conference 2025',
-    date: getFutureDate(30),
     time: '15-16 Jan ・ 9am - 6pm',
     location: 'Suntec Convention Centre, Singapore',
     organizer: 'EdTech Asia',
@@ -103,7 +86,6 @@ export const initialEvents: EventType[] = [
   {
     id: 8,
     title: 'Panel: The Future of Work with AI',
-    date: getFutureDate(20),
     time: 'Thurs, 1 Jan ・ 4pm - 5:30pm',
     location: 'Online',
     organizer: 'TechCrunch',
@@ -113,7 +95,6 @@ export const initialEvents: EventType[] = [
   {
     id: 9,
     title: 'Accelerator Batch #13 Demo Day',
-    date: getFutureDate(45),
     time: 'Mon, 20 Jan ・ 2pm - 5pm',
     location: 'Auditorium, Technology Park Malaysia',
     organizer: 'Cyberview Living Lab Accelerator',
@@ -123,7 +104,6 @@ export const initialEvents: EventType[] = [
   {
     id: 10,
     title: 'Startup Legal 101: From Incorporation to Fundraising',
-    date: getFutureDate(3),
     time: 'Thurs, 25 Dec ・ 10am - 12pm',
     location: 'Online',
     organizer: 'ZICO Law',
@@ -131,51 +111,3 @@ export const initialEvents: EventType[] = [
     tags: ['Legal', 'Workshop', 'Free'],
   }
 ];
-
-// Helper function to dynamically group events.
-// NOTE: This uses current date, so to test "Tomorrow" and "This Week",
-// you might need to adjust the dates in initialEvents.
-export const groupEvents = (events: EventType[]) => {
-  const groups = {
-    Tomorrow: [] as EventType[],
-    'This Week': [] as EventType[],
-    Upcoming: [] as EventType[],
-  };
-
-  events.forEach((event) => {
-    const eventDate = parseISO(event.date);
-    if (isTomorrow(eventDate)) {
-      groups.Tomorrow.push(event);
-    } else if (isThisWeek(eventDate, { weekStartsOn: 1 })) {
-      groups['This Week'].push(event);
-    } else {
-      groups.Upcoming.push(event);
-    }
-  });
-
-  return groups;
-};
-
-// To make event dates work for demonstration, let's create a dynamic grouping
-// based on a fixed "today".
-const getDemoDateGroups = (events: EventType[]) => {
-  const today = new Date(); // This will be the reference
-  const groups: { [key: string]: EventType[] } = {
-    Tomorrow: [],
-    'This Week': [],
-    Upcoming: [],
-  };
-
-  const sortedEvents = [...events].sort((a,b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
-
-  // A simple hack to make the sections appear for demo purposes
-  if(sortedEvents.length > 0) groups.Tomorrow.push(sortedEvents[0]);
-  if(sortedEvents.length > 2) groups['This Week'].push(sortedEvents[1], sortedEvents[2]);
-  if(sortedEvents.length > 3) {
-    groups.Upcoming = sortedEvents.slice(3);
-  }
-
-
-  // Filter out empty groups
-  return Object.fromEntries(Object.entries(groups).filter(([_, value]) => value.length > 0));
-}
