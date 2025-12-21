@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { isTomorrow, isThisWeek, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { isTomorrow, isThisWeek, parseISO, startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
 import type { EventType } from "./events-data";
 
 export function cn(...inputs: ClassValue[]) {
@@ -29,20 +29,18 @@ export const groupEventsByDate = (events: EventType[]) => {
         groups['This Week'].push(event);
       }
     } else if (eventDate > endOfThisWeek) {
-      groups.Upcoming.push(event);
+        // Group upcoming events by month
+        const month = format(eventDate, 'MMMM yyyy');
+        if (!groups[month]) {
+            groups[month] = [];
+        }
+        groups[month].push(event);
     }
   });
-
-  // A simple hack to make the sections appear for demo purposes regardless of current date
-  if (groups.Tomorrow.length === 0 && groups['This Week'].length === 0 && groups.Upcoming.length > 0) {
-      if(sortedEvents.length > 0) groups.Tomorrow.push(sortedEvents[0]);
-      if(sortedEvents.length > 2) groups['This Week'].push(sortedEvents[1], sortedEvents[2]);
-      if(sortedEvents.length > 3) {
-        groups.Upcoming = sortedEvents.slice(3);
-      } else {
-        groups.Upcoming = []; // clear it as we've moved them
-      }
-  }
+  
+  // Clean up empty default groups if they are not used.
+  if(groups['This Week'].length === 0) delete groups['This Week'];
+  if(groups.Upcoming.length === 0) delete groups.Upcoming;
 
 
   return Object.fromEntries(Object.entries(groups).filter(([, events]) => events.length > 0));

@@ -21,11 +21,19 @@ export type EventType = {
   tags: string[];
 };
 
+// Get a future date to ensure events show up
+const getFutureDate = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+
 export const initialEvents: EventType[] = [
   {
     id: 1,
     title: 'Seed Funding Office Hours',
-    date: '2024-08-27',
+    date: getFutureDate(1),
     time: 'Tue, 23 Dec ・ 10am - 1pm',
     location: 'Online',
     organizer: 'Endeavor Malaysia',
@@ -35,7 +43,7 @@ export const initialEvents: EventType[] = [
   {
     id: 2,
     title: 'Design Thinking for Founders',
-    date: '2024-08-29',
+    date: getFutureDate(2),
     time: 'Wed, 24 Dec ・ 2pm - 5pm',
     location: 'WORQ, KL Sentral',
     organizer: 'StartupKL',
@@ -45,7 +53,7 @@ export const initialEvents: EventType[] = [
   {
     id: 3,
     title: 'Full-Stack Developer Bootcamp Final Pitch',
-    date: '2024-09-01',
+    date: getFutureDate(4),
     time: '27-29 Dec ・ 10am (Day 1) - 5pm (Final day)',
     location: 'Online',
     organizer: 'NEXT Academy',
@@ -55,7 +63,7 @@ export const initialEvents: EventType[] = [
   {
     id: 4,
     title: 'New Year Founders Gathering',
-    date: '2024-09-15',
+    date: getFutureDate(10),
     time: 'Sat, 3 Jan ・ 6pm - 9pm',
     location: 'The Alley, Changkat',
     organizer: 'Malaysian Founders Network',
@@ -65,7 +73,7 @@ export const initialEvents: EventType[] = [
   {
     id: 5,
     title: 'AI in FinTech Summit',
-    date: '2024-09-22',
+    date: getFutureDate(12),
     time: 'Sun, 10 Jan ・ 9am - 4pm',
     location: 'Connexion Conference & Event Centre',
     organizer: 'Fintech Association of Malaysia',
@@ -75,7 +83,7 @@ export const initialEvents: EventType[] = [
   {
     id: 6,
     title: 'VC & Founder Networking Night',
-    date: '2024-09-05',
+    date: getFutureDate(5),
     time: 'Fri, 28 Dec ・ 7pm - 10pm',
     location: 'Private Rooftop Bar, Bangsar',
     organizer: 'VC Connect',
@@ -85,7 +93,7 @@ export const initialEvents: EventType[] = [
   {
     id: 7,
     title: 'Asia EdTech Conference 2025',
-    date: '2024-10-10',
+    date: getFutureDate(30),
     time: '15-16 Jan ・ 9am - 6pm',
     location: 'Suntec Convention Centre, Singapore',
     organizer: 'EdTech Asia',
@@ -95,7 +103,7 @@ export const initialEvents: EventType[] = [
   {
     id: 8,
     title: 'Panel: The Future of Work with AI',
-    date: '2024-10-02',
+    date: getFutureDate(20),
     time: 'Thurs, 1 Jan ・ 4pm - 5:30pm',
     location: 'Online',
     organizer: 'TechCrunch',
@@ -105,7 +113,7 @@ export const initialEvents: EventType[] = [
   {
     id: 9,
     title: 'Accelerator Batch #13 Demo Day',
-    date: '2024-10-20',
+    date: getFutureDate(45),
     time: 'Mon, 20 Jan ・ 2pm - 5pm',
     location: 'Auditorium, Technology Park Malaysia',
     organizer: 'Cyberview Living Lab Accelerator',
@@ -115,7 +123,7 @@ export const initialEvents: EventType[] = [
   {
     id: 10,
     title: 'Startup Legal 101: From Incorporation to Fundraising',
-    date: '2024-08-30',
+    date: getFutureDate(3),
     time: 'Thurs, 25 Dec ・ 10am - 12pm',
     location: 'Online',
     organizer: 'ZICO Law',
