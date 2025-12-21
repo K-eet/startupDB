@@ -28,12 +28,16 @@ export function EventCard({ event }: { event: EventType }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 pt-2">
-          {event.tags.map((tag, index) => (
+          <Badge
+            className={cn('text-white', categoryBgClass)}
+            style={{ backgroundColor: category.colorHex }}
+          >
+            {event.category}
+          </Badge>
+          {event.tags.map((tag) => (
             <Badge
               key={tag}
-              variant={index === 0 ? 'default' : 'outline'}
-              className={cn(index === 0 ? 'text-white' : '', index === 0 ? categoryBgClass : '')}
-              style={index === 0 ? { backgroundColor: category.colorHex } : {}}
+              variant='outline'
             >
               {tag}
             </Badge>
