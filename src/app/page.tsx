@@ -21,6 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
+
 
 function SearchButton() {
   const { pending } = useFormStatus();
@@ -34,6 +36,7 @@ function SearchButton() {
 
 export default function Home() {
   const [activeTab, setActiveTab] = React.useState('startups');
+  const router = useRouter();
 
   const initialState: SearchState = {
     startups: initialStartups,
@@ -56,12 +59,12 @@ export default function Home() {
   }, [state.error, state.timestamp, toast]);
 
   const handleMenuClick = (tab: string) => {
-    // For now, we'll just switch the active tab.
-    // In the future, this could navigate to different pages.
-    if (['startups', 'vcs'].includes(tab)) {
+    if (tab === 'startups' || tab === 'vcs') {
       setActiveTab(tab);
-    } else {
-      // Placeholder for other menu items
+    } else if (tab === 'Events') {
+      router.push('/events');
+    }
+    else {
       toast({
         title: 'Coming Soon!',
         description: `The "${tab}" feature is not yet implemented.`,

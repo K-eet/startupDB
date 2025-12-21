@@ -47,6 +47,11 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        'event-meetup': '#EF4444',
+        'event-conference': '#F97316',
+        'event-talk': '#8B5CF6',
+        'event-demo': '#3B82F6',
+        'event-others': '#14B8A6',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
