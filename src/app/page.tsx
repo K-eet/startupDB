@@ -8,20 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Search, Menu, Building, Rocket, Briefcase, CalendarDays, LogIn } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import StartupDirectory from '@/app/components/startup-directory';
 import VCDirectory from '@/app/components/vc-directory';
 import { initialStartups, initialVCFirms } from '@/lib/initial-data';
 import { useToast } from '@/hooks/use-toast';
-import { ThemeToggle } from '@/app/components/theme-toggle';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
+import { AppShell } from '@/app/components/app-shell';
 
 
 function SearchButton() {
@@ -35,8 +27,7 @@ function SearchButton() {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = React.useState('startups');
-  const router = useRouter();
+  const [activeTab, setActiveTab] = React.useState<'startups' | 'vcs' | 'events'>('startups');
 
   const initialState: SearchState = {
     startups: initialStartups,
@@ -58,66 +49,13 @@ export default function Home() {
     }
   }, [state.error, state.timestamp, toast]);
 
-  const handleMenuClick = (tab: string) => {
-    if (tab === 'startups' || tab === 'vcs') {
-      setActiveTab(tab);
-    } else if (tab === 'Events') {
-      router.push('/events');
-    }
-    else {
-      toast({
-        title: 'Coming Soon!',
-        description: `The "${tab}" feature is not yet implemented.`,
-      });
-    }
-  };
-
   return (
-    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
-      <header className="flex justify-between items-center mb-8">
-        <div className="text-left">
-          <h1 className="text-2xl font-bold tracking-tight">StartupDB</h1>
-          <p className="text-muted-foreground mt-2">
-            Intelligent Search for Startups and Venture Capital
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleMenuClick('startups')}>
-                <Rocket />
-                Startup Directory
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleMenuClick('vcs')}>
-                <Building />
-                VC Directory
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleMenuClick('Jobs')}>
-                <Briefcase />
-                Jobs
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
-                <CalendarDays />
-                Events
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleMenuClick('Sign Up/Login')}>
-                <LogIn />
-                Sign Up/Login
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
+    <AppShell
+      title="StartupDB"
+      description="Intelligent Search for Startups and Venture Capital"
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
       <Card className="mb-8">
         <CardContent className="p-4">
           <form action={formAction} className="flex flex-col sm:flex-row gap-4 items-start">
@@ -142,6 +80,6 @@ export default function Home() {
         {activeTab === 'startups' && <StartupDirectory data={state.startups} />}
         {activeTab === 'vcs' && <VCDirectory data={state.vcs} />}
       </div>
-    </main>
+    </AppShell>
   );
 }
