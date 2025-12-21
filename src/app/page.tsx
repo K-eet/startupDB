@@ -8,13 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Menu, Building, Rocket } from 'lucide-react';
 import StartupDirectory from '@/app/components/startup-directory';
 import VCDirectory from '@/app/components/vc-directory';
 import { initialStartups, initialVCFirms } from '@/lib/initial-data';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/app/components/theme-toggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 function SearchButton() {
   const { pending } = useFormStatus();
@@ -58,7 +63,27 @@ export default function Home() {
             Intelligent Search for Startups and Venture Capital
           </p>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setActiveTab('startups')}>
+                <Rocket />
+                Startup Directory
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('vcs')}>
+                <Building />
+                VC Directory
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       <Card className="mb-8">
@@ -81,18 +106,10 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="startups">Startup Directory</TabsTrigger>
-          <TabsTrigger value="vcs">VC Directory</TabsTrigger>
-        </TabsList>
-        <TabsContent value="startups">
-          <StartupDirectory data={state.startups} />
-        </TabsContent>
-        <TabsContent value="vcs">
-          <VCDirectory data={state.vcs} />
-        </TabsContent>
-      </Tabs>
+      <div>
+        {activeTab === 'startups' && <StartupDirectory data={state.startups} />}
+        {activeTab === 'vcs' && <VCDirectory data={state.vcs} />}
+      </div>
     </main>
   );
 }
