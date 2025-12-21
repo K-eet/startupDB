@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/app/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'StartupDB',
-  description: 'An intelligent directory of startups and VCs.',
+  description: "Discover Malaysia's premier startups, VCs, and events.",
 };
 
 export default function RootLayout({
