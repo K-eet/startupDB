@@ -29,14 +29,13 @@ export default function EventsPage() {
 
   return (
     <AppShell
-      pageName=""
+      pageName="Startup Events"
       description="Find and filter startup-related events."
       activeTab="events"
       onTabChange={() => {}}
     >
       <Card>
         <CardHeader>
-          <CardTitle>Startup Events</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
