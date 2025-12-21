@@ -29,7 +29,7 @@ export default function EventsPage() {
 
   return (
     <AppShell
-      pageName="Events"
+      pageName=""
       description="Find and filter startup-related events."
       activeTab="events"
       onTabChange={() => {}}
