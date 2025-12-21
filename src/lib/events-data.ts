@@ -25,7 +25,7 @@ export const initialEvents: EventType[] = [
   {
     id: 1,
     title: 'Seed Funding Office Hours',
-    date: '2024-08-27', // Use a future date for "Tomorrow" relative to a hypothetical "today"
+    date: '2024-08-27',
     time: 'Tue, 23 Dec ・ 10am - 1pm',
     location: 'Online',
     organizer: 'Endeavor Malaysia',
@@ -35,7 +35,7 @@ export const initialEvents: EventType[] = [
   {
     id: 2,
     title: 'Design Thinking for Founders',
-    date: '2024-08-29', // A date within the week
+    date: '2024-08-29',
     time: 'Wed, 24 Dec ・ 2pm - 5pm',
     location: 'WORQ, KL Sentral',
     organizer: 'StartupKL',
@@ -44,8 +44,8 @@ export const initialEvents: EventType[] = [
   },
   {
     id: 3,
-    title: 'Full-Stack Developer Bootcamp',
-    date: '2024-09-01', // A date within the week
+    title: 'Full-Stack Developer Bootcamp Final Pitch',
+    date: '2024-09-01',
     time: '27-29 Dec ・ 10am (Day 1) - 5pm (Final day)',
     location: 'Online',
     organizer: 'NEXT Academy',
@@ -55,23 +55,73 @@ export const initialEvents: EventType[] = [
   {
     id: 4,
     title: 'New Year Founders Gathering',
-    date: '2024-09-15', // An upcoming date
+    date: '2024-09-15',
     time: 'Sat, 3 Jan ・ 6pm - 9pm',
     location: 'The Alley, Changkat',
     organizer: 'Malaysian Founders Network',
-    category: 'Conference/Summit',
+    category: 'Meetup',
     tags: ['Networking', 'Free'],
   },
-    {
+  {
     id: 5,
     title: 'AI in FinTech Summit',
-    date: '2024-09-22', // An upcoming date
+    date: '2024-09-22',
     time: 'Sun, 10 Jan ・ 9am - 4pm',
     location: 'Connexion Conference & Event Centre',
     organizer: 'Fintech Association of Malaysia',
     category: 'Conference/Summit',
     tags: ['AI', 'Fintech', 'Paid'],
   },
+  {
+    id: 6,
+    title: 'VC & Founder Networking Night',
+    date: '2024-09-05',
+    time: 'Fri, 28 Dec ・ 7pm - 10pm',
+    location: 'Private Rooftop Bar, Bangsar',
+    organizer: 'VC Connect',
+    category: 'Meetup',
+    tags: ['Networking', 'Invite-only'],
+  },
+  {
+    id: 7,
+    title: 'Asia EdTech Conference 2025',
+    date: '2024-10-10',
+    time: '15-16 Jan ・ 9am - 6pm',
+    location: 'Suntec Convention Centre, Singapore',
+    organizer: 'EdTech Asia',
+    category: 'Conference/Summit',
+    tags: ['EdTech', 'Regional', 'Paid'],
+  },
+  {
+    id: 8,
+    title: 'Panel: The Future of Work with AI',
+    date: '2024-10-02',
+    time: 'Thurs, 1 Jan ・ 4pm - 5:30pm',
+    location: 'Online',
+    organizer: 'TechCrunch',
+    category: 'Talk/Panel',
+    tags: ['AI', 'Future of Work', 'Free'],
+  },
+  {
+    id: 9,
+    title: 'Accelerator Batch #13 Demo Day',
+    date: '2024-10-20',
+    time: 'Mon, 20 Jan ・ 2pm - 5pm',
+    location: 'Auditorium, Technology Park Malaysia',
+    organizer: 'Cyberview Living Lab Accelerator',
+    category: 'Demo Day/Pitch',
+    tags: ['Pitching', 'Investment', 'Invite-only'],
+  },
+  {
+    id: 10,
+    title: 'Startup Legal 101: From Incorporation to Fundraising',
+    date: '2024-08-30',
+    time: 'Thurs, 25 Dec ・ 10am - 12pm',
+    location: 'Online',
+    organizer: 'ZICO Law',
+    category: 'Others',
+    tags: ['Legal', 'Workshop', 'Free'],
+  }
 ];
 
 // Helper function to dynamically group events.
