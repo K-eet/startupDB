@@ -49,10 +49,12 @@ export default function Home() {
     }
   }, [state.error, state.timestamp, toast]);
 
+  const pageName = activeTab === 'startups' ? 'Startup Directory' : 'VC Directory';
+
   return (
     <AppShell
-      title="StartupDB"
-      description="Discover Malaysia's premier startups, VCs, and events."
+      pageName={pageName}
+      description="Intelligent Search for Startups and Venture Capital"
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >

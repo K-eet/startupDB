@@ -16,13 +16,13 @@ import { Menu, Building, Rocket, Briefcase, CalendarDays, LogIn } from 'lucide-r
 
 export function AppShell({
   children,
-  title,
+  pageName,
   description,
   activeTab,
   onTabChange,
 }: {
   children: React.ReactNode;
-  title: string;
+  pageName: string;
   description: string;
   activeTab: 'startups' | 'vcs' | 'events';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
@@ -56,9 +56,11 @@ export function AppShell({
     <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
       <header className="flex justify-between items-center mb-8">
         <div className="text-left">
-          <h1 className="text-2xl font-bold tracking-tight">StartupDB</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            StartupDB <span className="text-muted-foreground">/ {pageName}</span>
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Intelligent Search for Startups and Venture Capital
+            {description}
           </p>
         </div>
         <div className="flex items-center gap-2">
