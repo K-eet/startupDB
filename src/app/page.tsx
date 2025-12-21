@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <AppShell
       title="StartupDB"
-      description="Intelligent Search for Startups and Venture Capital"
+      description="Malaysia's Premier Startup Community"
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
