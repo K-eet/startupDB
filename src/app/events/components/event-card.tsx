@@ -6,11 +6,13 @@ import { Clock, MapPin, Building2, Laptop } from 'lucide-react';
 
 export function EventCard({ event }: { event: EventType }) {
   const category = eventCategories[event.category];
-  const categoryColorClass = `border-${category.colorName}`;
   const categoryBgClass = `bg-${category.colorName}`;
 
   return (
-    <Card className={cn('overflow-hidden', categoryColorClass)} style={{ borderLeftWidth: '4px' }}>
+    <Card 
+      className={cn('overflow-hidden')} 
+      style={{ borderLeftWidth: '4px', borderLeftColor: category.colorHex }}
+    >
       <CardContent className="p-4 space-y-3">
         <h3 className="text-xl font-semibold">{event.title}</h3>
         <div className="space-y-2 text-muted-foreground">
