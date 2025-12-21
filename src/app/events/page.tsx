@@ -35,8 +35,6 @@ export default function EventsPage() {
       onTabChange={() => {}}
     >
       <Card>
-        <CardHeader>
-        </CardHeader>
         <CardContent>
           <div className="space-y-8">
             {Object.entries(groupedEvents).map(([groupTitle, events]) => (

@@ -26,9 +26,6 @@ type VCDirectoryProps = {
 export default function VCDirectory({ data }: VCDirectoryProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Venture Capital Directory</CardTitle>
-      </CardHeader>
       <CardContent>
         <div className="border">
           <Accordion type="single" collapsible className="w-full">

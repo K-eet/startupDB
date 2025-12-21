@@ -45,7 +45,6 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Startup Directory</CardTitle>
         <div className="grid sm:grid-cols-3 gap-2 pt-4">
           <Select onValueChange={handleFilterChange('industry')} value={filters.industry}>
             <SelectTrigger>
