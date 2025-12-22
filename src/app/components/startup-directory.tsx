@@ -31,6 +31,17 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
   const industries = React.useMemo(() => ['all', ...Array.from(new Set(data.map((s) => s.industry)))], [data]);
   const stages = React.useMemo(() => ['all', ...Array.from(new Set(data.map((s) => s.stage)))], [data]);
   const locations = React.useMemo(() => ['all', ...Array.from(new Set(data.map((s) => s.location)))], [data]);
+  
+  const getCounts = (field: 'industry' | 'stage' | 'location') => {
+    return data.reduce((acc, item) => {
+      acc[item[field]] = (acc[item[field]] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  };
+
+  const industryCounts = React.useMemo(() => getCounts('industry'), [data]);
+  const stageCounts = React.useMemo(() => getCounts('stage'), [data]);
+  const locationCounts = React.useMemo(() => getCounts('location'), [data]);
 
   const filteredData = React.useMemo(() => {
     return data.filter((startup) => {
@@ -53,7 +64,7 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
             <SelectContent>
               {industries.map(industry => (
                 <SelectItem key={industry} value={industry}>
-                  {industry === 'all' ? 'All Industries' : industry}
+                  {industry === 'all' ? `All Industries [${data.length}]` : `${industry} [${industryCounts[industry]}]`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -65,7 +76,7 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
             <SelectContent>
               {stages.map(stage => (
                 <SelectItem key={stage} value={stage}>
-                  {stage === 'all' ? 'All Stages' : stage}
+                  {stage === 'all' ? `All Stages [${data.length}]` : `${stage} [${stageCounts[stage]}]`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -77,7 +88,7 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
             <SelectContent>
               {locations.map(location => (
                 <SelectItem key={location} value={location}>
-                  {location === 'all' ? 'All Locations' : location}
+                  {location === 'all' ? `All Locations [${data.length}]` : `${location} [${locationCounts[location]}]`}
                 </SelectItem>
               ))}
             </SelectContent>
