@@ -1,0 +1,23 @@
+# Compiled JavaScript files
+**/*.js.map
+**/*.ts.map
+
+# TypeScript v1 declaration files
+typings/
+
+# Node.js dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env*
+
+# Next.js build output
+.next/
+out/
+
+# Development files
+.turbo/
+.vscode/
+.idea/
+*.log
+npm-debug.log*
