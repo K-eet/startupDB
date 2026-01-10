@@ -53,7 +53,7 @@ export function AppShell({
   };
 
   return (
-    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
+    <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-7xl">
       <header className="flex justify-between items-center mb-8">
         <div className="text-left">
           <h1 className="text-2xl font-bold tracking-tight">
