@@ -1,20 +1,2 @@
 {
-  "functions": {
-    "source": ".",
-    "runtime": "nodejs22"
-  },
-  "hosting": {
-    "public": ".next",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "nextjsFunc"
-      }
-    ]
-  }
 }
