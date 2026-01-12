@@ -20,10 +20,14 @@ export type IntelligentStartupSearchInput = z.infer<typeof IntelligentStartupSea
 
 const StartupSearchResultSchema = z.object({
   name: z.string().describe('The name of the startup.'),
-  industry: z.string().describe('The industry the startup operates in.'),
-  stage: z.string().describe('The current stage of the startup (e.g., seed, series A).'),
-  location: z.string().describe('The location of the startup headquarters.'),
   description: z.string().describe('A brief description of the startup.'),
+  industry: z.string().describe('The parent industry category (e.g., B2B Software, Fintech).'),
+  subIndustry: z.string().describe('The sub-industry within the parent category.'),
+  technology: z.string().describe('The primary technology category.'),
+  subTechnology: z.string().describe('The sub-technology within the parent category.'),
+  archetype: z.string().describe('The startup archetype (e.g., Product-Led Startup/Scaleup, Deep-Tech Company).'),
+  country: z.string().describe('The country where the startup is headquartered.'),
+  city: z.string().describe('The city where the startup is headquartered.'),
 });
 export type StartupSearchResult = z.infer<typeof StartupSearchResultSchema>;
 
@@ -45,15 +49,19 @@ const prompt = ai.definePrompt({
   Keywords: {{{keywords}}}
 
   Return the results in a JSON array of StartupSearchResult objects.
-  Each object must contain the name, industry, stage, location and description of the startup.
+  Each object must contain: name, description, industry, subIndustry, technology, subTechnology, archetype, country, city.
   Example:
   [
     {
       "name": "Acme Corp",
-      "industry": "Software",
-      "stage": "Series A",
-      "location": "San Francisco, CA",
-      "description": "A software startup focused on AI."
+      "description": "A software startup focused on AI-powered analytics.",
+      "industry": "B2B Software",
+      "subIndustry": "Analytics",
+      "technology": "AI/ML",
+      "subTechnology": "LLMs",
+      "archetype": "Product-Led Startup/Scaleup",
+      "country": "United States",
+      "city": "San Francisco"
     }
   ]
   `,

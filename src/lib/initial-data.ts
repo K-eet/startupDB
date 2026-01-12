@@ -3,382 +3,554 @@ import type { IntelligentVCSearchOutput } from "@/ai/flows/intelligent-vc-search
 
 export const initialStartups: IntelligentStartupSearchOutput = [
     {
-        name: "InnovateAI",
-        industry: "Artificial Intelligence",
-        stage: "Seed",
-        location: "San Francisco, CA",
-        description: "Developing next-generation AI-powered tools for enterprise automation."
+        name: "DataPulse",
+        description: "Real-time business intelligence platform with automated insights and predictive analytics for enterprise decision-making.",
+        industry: "B2B Software",
+        subIndustry: "Analytics",
+        technology: "AI/ML",
+        subTechnology: "LLMs",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "San Francisco"
     },
     {
-        name: "HealthSphere",
-        industry: "Healthcare",
-        stage: "Series A",
-        location: "Boston, MA",
-        description: "A platform for personalized remote patient monitoring and telehealth services."
+        name: "CodeForge",
+        description: "AI-powered code generation and review platform that accelerates software development workflows.",
+        industry: "B2B Software",
+        subIndustry: "Developer Tools",
+        technology: "AI/ML",
+        subTechnology: "LLMs",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Austin"
     },
     {
-        name: "FinTechBlocks",
-        industry: "FinTech",
-        stage: "Series B",
-        location: "New York, NY",
-        description: "Building blockchain-based solutions for secure and transparent financial transactions."
+        name: "CloudMatrix",
+        description: "Multi-cloud infrastructure management platform with automated cost optimization and security compliance.",
+        industry: "B2B Software",
+        subIndustry: "Infrastructure",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Tech Solution & Integration Provider",
+        country: "United States",
+        city: "Seattle"
     },
     {
-        name: "EcoSolutions",
-        industry: "CleanTech",
-        stage: "Seed",
-        location: "Berlin, Germany",
-        description: "Creating sustainable alternatives to single-use plastics through bio-engineering."
+        name: "FlowStack",
+        description: "No-code workflow automation platform for teams to build and deploy business processes.",
+        industry: "B2B Software",
+        subIndustry: "Productivity",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Germany",
+        city: "Berlin"
     },
     {
         name: "CyberShield",
-        industry: "Cybersecurity",
-        stage: "Series A",
-        location: "Tel Aviv, Israel",
-        description: "AI-powered threat detection and response platform for enterprise networks."
+        description: "AI-powered threat detection and response platform protecting enterprise networks from advanced cyber attacks.",
+        industry: "B2B Software",
+        subIndustry: "Security",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Deep-Tech Company",
+        country: "Israel",
+        city: "Tel Aviv"
     },
     {
-        name: "LearnFlow",
-        industry: "EdTech",
-        stage: "Seed",
-        location: "London, UK",
-        description: "Adaptive learning platform using AI to personalize education for K-12 students."
+        name: "ShopWave",
+        description: "Headless commerce platform enabling brands to create personalized shopping experiences across all channels.",
+        industry: "Consumer",
+        subIndustry: "E-commerce",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "New York"
     },
     {
-        name: "ShopifyPlus",
-        industry: "E-commerce",
-        stage: "Series C",
-        location: "Toronto, Canada",
-        description: "Headless commerce platform enabling brands to build custom shopping experiences."
+        name: "StreamVerse",
+        description: "Interactive streaming platform combining live content with social gaming and virtual events.",
+        industry: "Consumer",
+        subIndustry: "Entertainment",
+        technology: "Cloud",
+        subTechnology: "GCP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Los Angeles"
     },
     {
-        name: "CloudMetrics",
-        industry: "SaaS",
-        stage: "Series B",
-        location: "Seattle, WA",
-        description: "Real-time observability and monitoring for cloud-native applications."
+        name: "ConnectHub",
+        description: "Professional networking platform with AI-powered matching for mentorship and collaboration.",
+        industry: "Consumer",
+        subIndustry: "Social",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United Kingdom",
+        city: "London"
     },
     {
-        name: "FreightWave",
-        industry: "Logistics",
-        stage: "Series A",
-        location: "Austin, TX",
-        description: "Digital freight matching platform connecting shippers with carriers."
+        name: "TradeLink",
+        description: "B2B marketplace connecting manufacturers with distributors for seamless supply chain transactions.",
+        industry: "Consumer",
+        subIndustry: "Marketplace",
+        technology: "Cloud",
+        subTechnology: "Azure",
+        archetype: "Tech Solution & Integration Provider",
+        country: "Singapore",
+        city: "Singapore"
     },
     {
-        name: "PropStack",
-        industry: "PropTech",
-        stage: "Seed",
-        location: "Miami, FL",
-        description: "AI-driven property valuation and investment analysis for real estate investors."
+        name: "NeoBank",
+        description: "Digital-first banking platform offering personalized financial services for underbanked populations.",
+        industry: "Fintech",
+        subIndustry: "Banking",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United Kingdom",
+        city: "London"
     },
     {
-        name: "FarmAI",
-        industry: "AgriTech",
-        stage: "Pre-Seed",
-        location: "Amsterdam, Netherlands",
-        description: "Precision agriculture using drone imagery and machine learning for crop optimization."
-    },
-    {
-        name: "GenomicsLab",
-        industry: "Biotech",
-        stage: "Series B",
-        location: "Boston, MA",
-        description: "CRISPR-based gene therapy research for rare genetic diseases."
-    },
-    {
-        name: "RoboServe",
-        industry: "Robotics",
-        stage: "Series A",
-        location: "Tokyo, Japan",
-        description: "Autonomous service robots for hospitality and healthcare industries."
-    },
-    {
-        name: "GameVerse",
-        industry: "Gaming",
-        stage: "Seed",
-        location: "Los Angeles, CA",
-        description: "Cloud gaming platform with cross-platform multiplayer capabilities."
+        name: "ChainVault",
+        description: "Institutional-grade cryptocurrency custody and trading infrastructure for financial institutions.",
+        industry: "Fintech",
+        subIndustry: "Crypto",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Deep-Tech Company",
+        country: "Singapore",
+        city: "Singapore"
     },
     {
         name: "InsureFlow",
-        industry: "InsurTech",
-        stage: "Series A",
-        location: "Singapore",
-        description: "Digital-first insurance platform for emerging markets in Southeast Asia."
-    },
-    {
-        name: "LegalBot",
-        industry: "LegalTech",
-        stage: "Seed",
-        location: "London, UK",
-        description: "AI contract analysis and legal document automation for law firms."
-    },
-    {
-        name: "TalentOS",
-        industry: "HRTech",
-        stage: "Series B",
-        location: "Berlin, Germany",
-        description: "Skills-based hiring platform with AI-powered candidate matching."
-    },
-    {
-        name: "AdPulse",
-        industry: "MarTech",
-        stage: "Series A",
-        location: "New York, NY",
-        description: "Real-time bidding optimization for programmatic advertising campaigns."
-    },
-    {
-        name: "SpaceLink",
-        industry: "SpaceTech",
-        stage: "Series C",
-        location: "Denver, CO",
-        description: "Satellite constellation for global IoT connectivity and data relay."
-    },
-    {
-        name: "MealKit Pro",
-        industry: "FoodTech",
-        stage: "Seed",
-        location: "Paris, France",
-        description: "Personalized meal kit delivery with AI-driven nutrition planning."
-    },
-    {
-        name: "NeuralMind",
-        industry: "Artificial Intelligence",
-        stage: "Series A",
-        location: "San Francisco, CA",
-        description: "Large language model infrastructure for enterprise AI applications."
-    },
-    {
-        name: "MediScan",
-        industry: "Healthcare",
-        stage: "Series B",
-        location: "Bangalore, India",
-        description: "AI-powered medical imaging diagnostics for radiology departments."
+        description: "Digital insurance platform using AI to automate underwriting and claims processing.",
+        industry: "Fintech",
+        subIndustry: "Insurance",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Tech Solution & Integration Provider",
+        country: "United States",
+        city: "New York"
     },
     {
         name: "PayStream",
-        industry: "FinTech",
-        stage: "Series A",
-        location: "Dublin, Ireland",
-        description: "Cross-border payment infrastructure for emerging market businesses."
+        description: "Cross-border payment infrastructure enabling instant settlements for global businesses.",
+        industry: "Fintech",
+        subIndustry: "Payments",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Ireland",
+        city: "Dublin"
     },
     {
-        name: "GreenGrid",
-        industry: "CleanTech",
-        stage: "Series B",
-        location: "Stockholm, Sweden",
-        description: "Smart grid technology for renewable energy distribution and storage."
-    },
-    {
-        name: "CodeCraft",
-        industry: "EdTech",
-        stage: "Series A",
-        location: "Austin, TX",
-        description: "Interactive coding bootcamp platform with live mentorship and projects."
-    },
-    {
-        name: "SecureVault",
-        industry: "Cybersecurity",
-        stage: "Pre-Seed",
-        location: "Sydney, Australia",
-        description: "Zero-knowledge encryption for enterprise data protection and compliance."
-    },
-    {
-        name: "QuickCart",
-        industry: "E-commerce",
-        stage: "Seed",
-        location: "Singapore",
-        description: "Instant checkout solution reducing cart abandonment for online stores."
-    },
-    {
-        name: "DataForge",
-        industry: "SaaS",
-        stage: "Series A",
-        location: "Seattle, WA",
-        description: "No-code data pipeline builder for business intelligence teams."
-    },
-    {
-        name: "DroneDeliver",
-        industry: "Logistics",
-        stage: "Series B",
-        location: "San Francisco, CA",
-        description: "Autonomous drone delivery network for last-mile urban logistics."
-    },
-    {
-        name: "HomeMatch",
-        industry: "PropTech",
-        stage: "Series A",
-        location: "Los Angeles, CA",
-        description: "AI-powered rental matching platform connecting tenants with landlords."
-    },
-    {
-        name: "CropGuard",
-        industry: "AgriTech",
-        stage: "Seed",
-        location: "Tel Aviv, Israel",
-        description: "IoT sensors and AI for early pest detection and crop disease prevention."
-    },
-    {
-        name: "ProteinWorks",
-        industry: "Biotech",
-        stage: "Series A",
-        location: "Boston, MA",
-        description: "Computational protein design for novel therapeutic development."
-    },
-    {
-        name: "WarehouseBot",
-        industry: "Robotics",
-        stage: "Series C",
-        location: "Berlin, Germany",
-        description: "Autonomous mobile robots for warehouse picking and fulfillment."
-    },
-    {
-        name: "StreamPlay",
-        industry: "Gaming",
-        stage: "Pre-Seed",
-        location: "Stockholm, Sweden",
-        description: "Live streaming platform with integrated gameplay and social features."
-    },
-    {
-        name: "ClaimSmart",
-        industry: "InsurTech",
-        stage: "Seed",
-        location: "New York, NY",
-        description: "Automated claims processing using computer vision and NLP."
-    },
-    {
-        name: "ContractIQ",
-        industry: "LegalTech",
-        stage: "Series A",
-        location: "San Francisco, CA",
-        description: "Smart contract management with AI-powered risk analysis."
-    },
-    {
-        name: "PeopleFirst",
-        industry: "HRTech",
-        stage: "Seed",
-        location: "Toronto, Canada",
-        description: "Employee engagement and wellness platform for remote teams."
-    },
-    {
-        name: "InfluencerHub",
-        industry: "MarTech",
-        stage: "Series B",
-        location: "Los Angeles, CA",
-        description: "Influencer marketing platform with campaign analytics and ROI tracking."
-    },
-    {
-        name: "OrbitLabs",
-        industry: "SpaceTech",
-        stage: "Seed",
-        location: "Austin, TX",
-        description: "Small satellite manufacturing for earth observation missions."
-    },
-    {
-        name: "FreshFarm",
-        industry: "FoodTech",
-        stage: "Series A",
-        location: "Amsterdam, Netherlands",
-        description: "Vertical farming technology for urban food production."
-    },
-    {
-        name: "VoiceAI",
-        industry: "Artificial Intelligence",
-        stage: "Seed",
-        location: "London, UK",
-        description: "Conversational AI platform for customer service automation."
-    },
-    {
-        name: "TherapyConnect",
+        name: "GenomicsLab",
+        description: "CRISPR-based gene therapy research platform for rare genetic disease treatments.",
         industry: "Healthcare",
-        stage: "Pre-Seed",
-        location: "Denver, CO",
-        description: "On-demand mental health platform connecting users with licensed therapists."
+        subIndustry: "Biotech",
+        technology: "Data",
+        subTechnology: "Analytics",
+        archetype: "Deep-Tech Company",
+        country: "United States",
+        city: "Boston"
     },
     {
-        name: "CryptoTrade",
-        industry: "FinTech",
-        stage: "Series C",
-        location: "Singapore",
-        description: "Institutional-grade cryptocurrency trading and custody platform."
+        name: "MediScan",
+        description: "AI-powered medical imaging diagnostics platform for radiology departments worldwide.",
+        industry: "Healthcare",
+        subIndustry: "Digital Health",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Deep-Tech Company",
+        country: "India",
+        city: "Bangalore"
     },
     {
-        name: "SolarMax",
-        industry: "CleanTech",
-        stage: "Series A",
-        location: "Sydney, Australia",
-        description: "Next-generation solar panel technology with improved efficiency."
+        name: "BioSense",
+        description: "Wearable medical device platform for continuous health monitoring and early disease detection.",
+        industry: "Healthcare",
+        subIndustry: "Medical Devices",
+        technology: "Mobile",
+        subTechnology: "iOS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "San Francisco"
     },
     {
-        name: "SkillPath",
-        industry: "EdTech",
-        stage: "Pre-Seed",
-        location: "Bangalore, India",
-        description: "Micro-learning platform for professional skill development."
+        name: "NeuralMind",
+        description: "Foundation model infrastructure for enterprise AI applications with custom fine-tuning capabilities.",
+        industry: "AI/ML",
+        subIndustry: "Foundation Models",
+        technology: "AI/ML",
+        subTechnology: "LLMs",
+        archetype: "Deep-Tech Company",
+        country: "United States",
+        city: "San Francisco"
     },
     {
-        name: "ThreatWatch",
-        industry: "Cybersecurity",
-        stage: "Series B",
-        location: "San Francisco, CA",
-        description: "Security operations center as a service for mid-market companies."
+        name: "VisionAI",
+        description: "Computer vision platform for industrial quality control and automated visual inspection.",
+        industry: "AI/ML",
+        subIndustry: "Applied AI",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Tech Solution & Integration Provider",
+        country: "Germany",
+        city: "Munich"
     },
     {
-        name: "MarketFlow",
-        industry: "E-commerce",
-        stage: "Series A",
-        location: "Paris, France",
-        description: "B2B marketplace platform for wholesale and distribution."
+        name: "MLPipeline",
+        description: "End-to-end MLOps platform for deploying and monitoring machine learning models at scale.",
+        industry: "AI/ML",
+        subIndustry: "MLOps",
+        technology: "Cloud",
+        subTechnology: "GCP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Seattle"
+    },
+    {
+        name: "SolarGrid",
+        description: "Next-generation solar panel technology with 40% improved efficiency for commercial installations.",
+        industry: "Climate",
+        subIndustry: "Clean Energy",
+        technology: "Data",
+        subTechnology: "Analytics",
+        archetype: "Deep-Tech Company",
+        country: "Australia",
+        city: "Sydney"
+    },
+    {
+        name: "CarbonCapture",
+        description: "Direct air capture technology for industrial-scale carbon dioxide removal and storage.",
+        industry: "Climate",
+        subIndustry: "Carbon Capture",
+        technology: "Data",
+        subTechnology: "Analytics",
+        archetype: "Deep-Tech Company",
+        country: "Canada",
+        city: "Vancouver"
+    },
+    {
+        name: "EcoTrack",
+        description: "Sustainability reporting platform helping enterprises measure and reduce their carbon footprint.",
+        industry: "Climate",
+        subIndustry: "Sustainability",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Netherlands",
+        city: "Amsterdam"
+    },
+    {
+        name: "RoboServe",
+        description: "Autonomous service robots for hospitality and healthcare industries with natural language interaction.",
+        industry: "Hardware",
+        subIndustry: "Robotics",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Deep-Tech Company",
+        country: "Japan",
+        city: "Tokyo"
+    },
+    {
+        name: "SensorNet",
+        description: "Industrial IoT platform connecting manufacturing equipment for predictive maintenance.",
+        industry: "Hardware",
+        subIndustry: "IoT",
+        technology: "Cloud",
+        subTechnology: "Azure",
+        archetype: "Tech Solution & Integration Provider",
+        country: "Germany",
+        city: "Berlin"
+    },
+    {
+        name: "ChipWorks",
+        description: "Advanced semiconductor design for AI accelerators and edge computing devices.",
+        industry: "Hardware",
+        subIndustry: "Semiconductors",
+        technology: "Data",
+        subTechnology: "Analytics",
+        archetype: "Deep-Tech Company",
+        country: "United States",
+        city: "Austin"
+    },
+    {
+        name: "MetricFlow",
+        description: "Real-time observability platform for cloud-native applications with automated anomaly detection.",
+        industry: "B2B Software",
+        subIndustry: "Analytics",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Denver"
     },
     {
         name: "APIStack",
-        industry: "SaaS",
-        stage: "Seed",
-        location: "Dublin, Ireland",
-        description: "API management and monetization platform for developers."
+        description: "API management and monetization platform for developers building data products.",
+        industry: "B2B Software",
+        subIndustry: "Developer Tools",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Ireland",
+        city: "Dublin"
     },
     {
-        name: "FleetTrack",
-        industry: "Logistics",
-        stage: "Series A",
-        location: "Miami, FL",
-        description: "Fleet management software with real-time tracking and route optimization."
+        name: "NetSecure",
+        description: "Zero-trust network security platform with identity-based access controls for enterprises.",
+        industry: "B2B Software",
+        subIndustry: "Security",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Tech Solution & Integration Provider",
+        country: "Israel",
+        city: "Tel Aviv"
     },
     {
-        name: "BuildSmart",
-        industry: "PropTech",
-        stage: "Series B",
-        location: "Tokyo, Japan",
-        description: "Construction project management with BIM integration and cost tracking."
+        name: "TeamFlow",
+        description: "Collaborative workspace platform combining documentation, project management, and communication.",
+        industry: "B2B Software",
+        subIndustry: "Productivity",
+        technology: "Cloud",
+        subTechnology: "GCP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "France",
+        city: "Paris"
     },
     {
-        name: "HarvestAI",
-        industry: "AgriTech",
-        stage: "Series A",
-        location: "Denver, CO",
-        description: "AI-powered yield prediction and harvest optimization for large farms."
+        name: "ServerEdge",
+        description: "Edge computing infrastructure for low-latency applications and real-time data processing.",
+        industry: "B2B Software",
+        subIndustry: "Infrastructure",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Deep-Tech Company",
+        country: "Sweden",
+        city: "Stockholm"
     },
     {
-        name: "CellTech",
-        industry: "Biotech",
-        stage: "Pre-Seed",
-        location: "London, UK",
-        description: "Cell-based meat production using advanced tissue engineering."
+        name: "QuickCart",
+        description: "One-click checkout solution reducing cart abandonment for e-commerce stores.",
+        industry: "Consumer",
+        subIndustry: "E-commerce",
+        technology: "Mobile",
+        subTechnology: "Cross-platform",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Singapore",
+        city: "Singapore"
     },
     {
-        name: "AssemblyAI",
-        industry: "Robotics",
-        stage: "Seed",
-        location: "Boston, MA",
-        description: "Collaborative robots for electronics manufacturing assembly lines."
+        name: "GameVerse",
+        description: "Cloud gaming platform with cross-platform multiplayer and social features.",
+        industry: "Consumer",
+        subIndustry: "Entertainment",
+        technology: "Cloud",
+        subTechnology: "Azure",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "South Korea",
+        city: "Seoul"
     },
     {
-        name: "ESportsArena",
-        industry: "Gaming",
-        stage: "Series A",
-        location: "Seoul, South Korea",
-        description: "Competitive gaming platform with tournament hosting and broadcasting."
+        name: "FreelanceHub",
+        description: "Global marketplace connecting skilled professionals with project-based work opportunities.",
+        industry: "Consumer",
+        subIndustry: "Marketplace",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Miami"
+    },
+    {
+        name: "CreditScore",
+        description: "Alternative credit scoring platform using AI to assess creditworthiness for underbanked populations.",
+        industry: "Fintech",
+        subIndustry: "Banking",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Tech Solution & Integration Provider",
+        country: "India",
+        city: "Mumbai"
+    },
+    {
+        name: "TokenSwap",
+        description: "Decentralized exchange protocol for seamless cryptocurrency trading with minimal slippage.",
+        industry: "Fintech",
+        subIndustry: "Crypto",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Singapore",
+        city: "Singapore"
+    },
+    {
+        name: "ClaimBot",
+        description: "Automated insurance claims processing using computer vision and natural language processing.",
+        industry: "Fintech",
+        subIndustry: "Insurance",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Tech Solution & Integration Provider",
+        country: "United States",
+        city: "New York"
+    },
+    {
+        name: "ProteinWorks",
+        description: "Computational protein design platform for novel therapeutic development.",
+        industry: "Healthcare",
+        subIndustry: "Biotech",
+        technology: "AI/ML",
+        subTechnology: "LLMs",
+        archetype: "Deep-Tech Company",
+        country: "United States",
+        city: "Boston"
+    },
+    {
+        name: "TherapyConnect",
+        description: "On-demand mental health platform connecting users with licensed therapists.",
+        industry: "Healthcare",
+        subIndustry: "Digital Health",
+        technology: "Mobile",
+        subTechnology: "Cross-platform",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Denver"
+    },
+    {
+        name: "DiagnosticAI",
+        description: "AI-powered diagnostic assistant for primary care physicians with clinical decision support.",
+        industry: "Healthcare",
+        subIndustry: "Digital Health",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Deep-Tech Company",
+        country: "United Kingdom",
+        city: "Cambridge"
+    },
+    {
+        name: "VoiceAI",
+        description: "Conversational AI platform for customer service automation with human-like interactions.",
+        industry: "AI/ML",
+        subIndustry: "Applied AI",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United Kingdom",
+        city: "London"
+    },
+    {
+        name: "ModelHub",
+        description: "Platform for sharing and deploying pre-trained machine learning models across organizations.",
+        industry: "AI/ML",
+        subIndustry: "MLOps",
+        technology: "Cloud",
+        subTechnology: "AWS",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Canada",
+        city: "Toronto"
+    },
+    {
+        name: "SmartGrid",
+        description: "AI-optimized power grid management for renewable energy distribution and storage.",
+        industry: "Climate",
+        subIndustry: "Clean Energy",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Deep-Tech Company",
+        country: "Sweden",
+        city: "Stockholm"
+    },
+    {
+        name: "GreenScore",
+        description: "ESG scoring platform helping investors evaluate company sustainability performance.",
+        industry: "Climate",
+        subIndustry: "Sustainability",
+        technology: "Data",
+        subTechnology: "Analytics",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Netherlands",
+        city: "Amsterdam"
+    },
+    {
+        name: "WarehouseBot",
+        description: "Autonomous mobile robots for warehouse picking and fulfillment operations.",
+        industry: "Hardware",
+        subIndustry: "Robotics",
+        technology: "AI/ML",
+        subTechnology: "Computer Vision",
+        archetype: "Deep-Tech Company",
+        country: "Germany",
+        city: "Berlin"
+    },
+    {
+        name: "SmartFactory",
+        description: "Industrial IoT platform for manufacturing automation and quality control.",
+        industry: "Hardware",
+        subIndustry: "IoT",
+        technology: "Cloud",
+        subTechnology: "Azure",
+        archetype: "Custom Software Developer",
+        country: "Japan",
+        city: "Osaka"
+    },
+    {
+        name: "DataForge",
+        description: "No-code data pipeline builder for business intelligence teams with visual ETL.",
+        industry: "B2B Software",
+        subIndustry: "Analytics",
+        technology: "Data",
+        subTechnology: "ETL",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "Seattle"
+    },
+    {
+        name: "ContainerOps",
+        description: "Kubernetes management platform simplifying container orchestration for DevOps teams.",
+        industry: "B2B Software",
+        subIndustry: "Infrastructure",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "United States",
+        city: "San Francisco"
+    },
+    {
+        name: "SecureCode",
+        description: "Static code analysis platform detecting security vulnerabilities before deployment.",
+        industry: "B2B Software",
+        subIndustry: "Security",
+        technology: "AI/ML",
+        subTechnology: "NLP",
+        archetype: "Product-Led Startup/Scaleup",
+        country: "Israel",
+        city: "Tel Aviv"
+    },
+    {
+        name: "SynergyTech",
+        description: "Enterprise systems integration consultancy specializing in cloud migration and modernization.",
+        industry: "B2B Software",
+        subIndustry: "Infrastructure",
+        technology: "Cloud",
+        subTechnology: "Multi-cloud",
+        archetype: "ICT Partner & Reseller",
+        country: "Australia",
+        city: "Melbourne"
+    },
+    {
+        name: "DigitalBridge",
+        description: "IT consulting firm providing custom software solutions for digital transformation projects.",
+        industry: "B2B Software",
+        subIndustry: "Productivity",
+        technology: "Cloud",
+        subTechnology: "Azure",
+        archetype: "Custom Software Developer",
+        country: "India",
+        city: "Bangalore"
     }
 ];
 
