@@ -281,16 +281,125 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
             )}
           </div>
 
-          {/* Industry Filter */}
-          {renderHierarchicalFilter(
-            'Industry',
-            'industry',
-            industryCategories,
-            industryFilters,
-            setIndustryFilters,
-            'industry',
-            'subIndustry'
-          )}
+          {/* Industry Filter - YC Classification */}
+          <div>
+            <button
+              onClick={() => toggleSection('industry')}
+              className="flex items-center justify-between w-full py-2 text-left"
+            >
+              <span className="font-medium text-sm">Industry</span>
+              {openSections.industry ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+            {openSections.industry && (
+              <div className="space-y-1 mt-2">
+                {/* All Industries Option */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="industry-all"
+                    checked={Object.keys(industryFilters).length === 0}
+                    onCheckedChange={() => setIndustryFilters({})}
+                  />
+                  <Label
+                    htmlFor="industry-all"
+                    className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                  >
+                    <span>All industries</span>
+                    <span className="text-muted-foreground">{data.length}</span>
+                  </Label>
+                </div>
+
+                {/* Industry Categories */}
+                {Object.entries(industryCategories).map(([parent, subcategories]) => {
+                  const isExpanded = expandedParents[`industry-${parent}`];
+                  const isParentSelected = industryFilters[parent]?.selected || false;
+                  const selectedChildren = industryFilters[parent]?.children || [];
+                  const hasSubcategories = subcategories.length > 0;
+                  const parentCount = getParentCount('industry', parent);
+
+                  return (
+                    <div key={parent} className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`industry-${parent}`}
+                          checked={isParentSelected}
+                          onCheckedChange={() =>
+                            handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, parent)
+                          }
+                        />
+                        {hasSubcategories ? (
+                          <button
+                            onClick={() => toggleParentExpand(`industry-${parent}`)}
+                            className="flex-1 flex items-center justify-between text-left"
+                          >
+                            <Label
+                              htmlFor={`industry-${parent}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {parent}
+                            </Label>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">
+                                {parentCount}
+                              </span>
+                              {isExpanded ? (
+                                <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                              )}
+                            </div>
+                          </button>
+                        ) : (
+                          <Label
+                            htmlFor={`industry-${parent}`}
+                            className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                          >
+                            <span>{parent}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {parentCount}
+                            </span>
+                          </Label>
+                        )}
+                      </div>
+                      {isExpanded && hasSubcategories && (
+                        <div className="ml-6 space-y-1">
+                          {subcategories.map((subName) => {
+                            const subCount = getChildCount('industry', 'subIndustry', parent, subName);
+                            return (
+                              <div key={subName} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`industry-${parent}-${subName}`}
+                                  checked={selectedChildren.includes(subName)}
+                                  onCheckedChange={() =>
+                                    handleHierarchicalFilterToggle(
+                                      industryFilters,
+                                      setIndustryFilters,
+                                      parent,
+                                      subName
+                                    )
+                                  }
+                                />
+                                <Label
+                                  htmlFor={`industry-${parent}-${subName}`}
+                                  className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                                >
+                                  <span>{subName}</span>
+                                  <span className="text-muted-foreground">{subCount}</span>
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <Separator className="my-3" />
 
