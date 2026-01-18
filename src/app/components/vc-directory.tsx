@@ -21,11 +21,14 @@ import React from 'react';
 
 type VCDirectoryProps = {
   data: IntelligentVCSearchOutput;
+  searchBar?: React.ReactNode;
 };
 
-export default function VCDirectory({ data }: VCDirectoryProps) {
+export default function VCDirectory({ data, searchBar }: VCDirectoryProps) {
   return (
-    <Card>
+    <div>
+      {searchBar && <div className="mb-6">{searchBar}</div>}
+      <Card>
       <CardContent className="p-0">
         <Accordion type="single" collapsible className="w-full">
           <Table>
@@ -72,5 +75,6 @@ export default function VCDirectory({ data }: VCDirectoryProps) {
         </Accordion>
       </CardContent>
     </Card>
+    </div>
   );
 }

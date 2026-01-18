@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Menu, Building, Rocket, Briefcase, CalendarDays, LogIn } from 'lucide-react';
+import { Menu, Building, Rocket, Briefcase, CalendarDays, User } from 'lucide-react';
 
 export function AppShell({
   children,
@@ -23,7 +23,7 @@ export function AppShell({
 }: {
   children: React.ReactNode;
   pageName: string;
-  description: string;
+  description?: React.ReactNode;
   activeTab: 'startups' | 'vcs' | 'events';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
 }) {
@@ -52,51 +52,96 @@ export function AppShell({
     }
   };
 
+  const handleLoginClick = () => {
+    toast({
+      title: 'Coming Soon!',
+      description: 'The "Sign Up/Login" feature is not yet implemented.',
+    });
+  };
+
+  const navItems = [
+    { label: 'Companies', tab: 'startups' },
+    { label: 'VCs', tab: 'vcs' },
+    { label: 'Events', tab: 'Events' },
+    { label: 'Jobs', tab: 'Jobs' },
+  ];
+
   return (
     <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-7xl">
-      <header className="flex justify-between items-center mb-8">
-        <div className="text-left">
-          <h1 className="text-2xl font-bold tracking-tight">
-            StartupDB <span className="text-muted-foreground">/ {pageName}</span>
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            {description}
-          </p>
+      <header className="mb-8">
+        {/* Top bar with logo, nav, and actions */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl font-bold tracking-tight">StartupDB</span>
+
+            {/* Desktop navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              <span className="text-muted-foreground mx-2">|</span>
+              {navItems.map((item) => (
+                <button
+                  key={item.tab}
+                  onClick={() => handleMenuClick(item.tab)}
+                  className={`px-3 py-1 text-sm font-medium transition-colors hover:text-primary ${
+                    (item.tab === 'startups' && activeTab === 'startups') ||
+                    (item.tab === 'vcs' && activeTab === 'vcs')
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+
+            {/* User icon for login (desktop and mobile) */}
+            <Button variant="ghost" size="icon" onClick={handleLoginClick}>
+              <User />
+              <span className="sr-only">Sign up or log in</span>
+            </Button>
+
+            {/* Mobile hamburger menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleMenuClick('startups')}>
+                  <Rocket />
+                  Companies
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleMenuClick('vcs')}>
+                  <Building />
+                  VCs
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
+                  <CalendarDays />
+                  Events
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleMenuClick('Jobs')}>
+                  <Briefcase />
+                  Jobs
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleMenuClick('startups')}>
-                <Rocket />
-                Startup Directory
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleMenuClick('vcs')}>
-                <Building />
-                VC Directory
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleMenuClick('Jobs')}>
-                <Briefcase />
-                Jobs
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
-                <CalendarDays />
-                Events
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleMenuClick('Sign Up/Login')}>
-                <LogIn />
-                Sign Up/Login
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+        {/* Page title and description */}
+        <div className="mt-6">
+          <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
+          {description && (
+            <div className="text-muted-foreground mt-2">
+              {description}
+            </div>
+          )}
         </div>
       </header>
 

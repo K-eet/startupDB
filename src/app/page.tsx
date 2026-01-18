@@ -14,6 +14,7 @@ import VCDirectory from '@/app/components/vc-directory';
 import { initialStartups, initialVCFirms } from '@/lib/initial-data';
 import { useToast } from '@/hooks/use-toast';
 import { AppShell } from '@/app/components/app-shell';
+import Link from 'next/link';
 
 
 function SearchButton() {
@@ -49,38 +50,75 @@ export default function Home() {
     }
   }, [state.error, state.timestamp, toast]);
 
-  const pageName = activeTab === 'startups' ? 'Startup Directory' : 'VC Directory';
+  const pageName = activeTab === 'startups' ? 'Directory' : 'VC Directory';
 
   return (
     <AppShell
       pageName={pageName}
-      description="Intelligent Search for Startups and Venture Capital"
+      description={
+        <>
+          <p>The StartupDB Directory is a structured, continuously updated list of technology companies operating in Malaysia.</p>
+          <Link href="/categorisation" className="text-primary hover:underline">
+            Learn how we categorise technology companies →
+          </Link>
+        </>
+      }
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
-      <Card className="mb-8">
-        <CardContent className="p-4">
-          <form action={formAction} className="flex flex-col sm:flex-row gap-4 items-start">
-            <div className="w-full">
-              <Label htmlFor="keywords" className="sr-only">Search Keywords</Label>
-              <Input
-                id="keywords"
-                name="keywords"
-                type="text"
-                placeholder="e.g., 'early stage fintech in London' or 'AI healthcare VCs'"
-                required
-                className="text-base"
-              />
-            </div>
-            <input type="hidden" name="type" value={activeTab} />
-            <SearchButton />
-          </form>
-        </CardContent>
-      </Card>
-
       <div>
-        {activeTab === 'startups' && <StartupDirectory data={state.startups} />}
-        {activeTab === 'vcs' && <VCDirectory data={state.vcs} />}
+        {activeTab === 'startups' && (
+          <StartupDirectory
+            data={state.startups}
+            searchBar={
+              <Card>
+                <CardContent className="p-4">
+                  <form action={formAction} className="flex flex-col sm:flex-row gap-4 items-start">
+                    <div className="w-full">
+                      <Label htmlFor="keywords" className="sr-only">Search Keywords</Label>
+                      <Input
+                        id="keywords"
+                        name="keywords"
+                        type="text"
+                        placeholder="e.g., 'early stage fintech in London' or 'AI healthcare VCs'"
+                        required
+                        className="text-base"
+                      />
+                    </div>
+                    <input type="hidden" name="type" value={activeTab} />
+                    <SearchButton />
+                  </form>
+                </CardContent>
+              </Card>
+            }
+          />
+        )}
+        {activeTab === 'vcs' && (
+          <VCDirectory
+            data={state.vcs}
+            searchBar={
+              <Card>
+                <CardContent className="p-4">
+                  <form action={formAction} className="flex flex-col sm:flex-row gap-4 items-start">
+                    <div className="w-full">
+                      <Label htmlFor="keywords" className="sr-only">Search Keywords</Label>
+                      <Input
+                        id="keywords"
+                        name="keywords"
+                        type="text"
+                        placeholder="e.g., 'early stage fintech in London' or 'AI healthcare VCs'"
+                        required
+                        className="text-base"
+                      />
+                    </div>
+                    <input type="hidden" name="type" value={activeTab} />
+                    <SearchButton />
+                  </form>
+                </CardContent>
+              </Card>
+            }
+          />
+        )}
       </div>
     </AppShell>
   );

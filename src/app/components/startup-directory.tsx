@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronUp, Building2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Building2, X } from 'lucide-react';
 import React from 'react';
 import {
   industryCategories,
@@ -16,6 +16,7 @@ import {
 
 type StartupDirectoryProps = {
   data: IntelligentStartupSearchOutput;
+  searchBar?: React.ReactNode;
 };
 
 type HierarchicalFilter = {
@@ -25,7 +26,7 @@ type HierarchicalFilter = {
   };
 };
 
-export default function StartupDirectory({ data }: StartupDirectoryProps) {
+export default function StartupDirectory({ data, searchBar }: StartupDirectoryProps) {
   // Filter section open/close state
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
     industry: true,
@@ -175,14 +176,18 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
     filters: HierarchicalFilter,
     setFilters: React.Dispatch<React.SetStateAction<HierarchicalFilter>>,
     parentField: 'industry' | 'technology' | 'country',
-    childField: 'subIndustry' | 'subTechnology' | 'city'
+    childField: 'subIndustry' | 'subTechnology' | 'city',
+    colorClass: string
   ) => (
     <div>
       <button
         onClick={() => toggleSection(sectionKey)}
         className="flex items-center justify-between w-full py-2 text-left"
       >
-        <span className="font-medium text-sm">{title}</span>
+        <span className="font-medium text-sm flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${colorClass}`}></span>
+          {title}
+        </span>
         {openSections[sectionKey] ? (
           <ChevronUp className="h-4 w-4 text-muted-foreground" />
         ) : (
@@ -287,7 +292,10 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
               onClick={() => toggleSection('industry')}
               className="flex items-center justify-between w-full py-2 text-left"
             >
-              <span className="font-medium text-sm">Industry</span>
+              <span className="font-medium text-sm flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-400 dark:bg-red-500"></span>
+                Industry
+              </span>
               {openSections.industry ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
@@ -403,26 +411,16 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
 
           <Separator className="my-3" />
 
-          {/* Technology Filter */}
-          {renderHierarchicalFilter(
-            'Technology',
-            'technology',
-            technologyCategories,
-            technologyFilters,
-            setTechnologyFilters,
-            'technology',
-            'subTechnology'
-          )}
-
-          <Separator className="my-3" />
-
           {/* Archetype Filter */}
           <div>
             <button
               onClick={() => toggleSection('archetype')}
               className="flex items-center justify-between w-full py-2 text-left"
             >
-              <span className="font-medium text-sm">Archetype</span>
+              <span className="font-medium text-sm flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500"></span>
+                Archetype
+              </span>
               {openSections.archetype ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
@@ -458,6 +456,20 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
 
           <Separator className="my-3" />
 
+          {/* Technology Filter */}
+          {renderHierarchicalFilter(
+            'Technology',
+            'technology',
+            technologyCategories,
+            technologyFilters,
+            setTechnologyFilters,
+            'technology',
+            'subTechnology',
+            'bg-yellow-400 dark:bg-yellow-500'
+          )}
+
+          <Separator className="my-3" />
+
           {/* Location Filter */}
           {renderHierarchicalFilter(
             'Location',
@@ -466,13 +478,123 @@ export default function StartupDirectory({ data }: StartupDirectoryProps) {
             locationFilters,
             setLocationFilters,
             'country',
-            'city'
+            'city',
+            'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400'
           )}
         </div>
       </aside>
 
       {/* Main Content - Company Grid */}
       <main className="flex-1">
+        {searchBar && <div className="mb-6">{searchBar}</div>}
+
+        {/* Active Filter Chips */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* Industry chips - Red */}
+            {Object.entries(industryFilters).map(([parent, { selected, children }]) => (
+              <React.Fragment key={`industry-${parent}`}>
+                {selected && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                    onClick={() => handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, parent)}
+                  >
+                    <span className="text-red-600 dark:text-red-400 text-xs">Industry:</span> {parent}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {children.map((child) => (
+                  <Badge
+                    key={`industry-${parent}-${child}`}
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                    onClick={() => handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, parent, child)}
+                  >
+                    <span className="text-red-600 dark:text-red-400 text-xs">Industry:</span> {child}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+              </React.Fragment>
+            ))}
+
+            {/* Archetype chips - Blue */}
+            {archetypeFilters.map((archetype) => (
+              <Badge
+                key={`archetype-${archetype}`}
+                variant="secondary"
+                className="flex items-center gap-1 cursor-pointer bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+                onClick={() => handleArchetypeToggle(archetype)}
+              >
+                <span className="text-blue-600 dark:text-blue-400 text-xs">Archetype:</span> {archetype}
+                <X className="h-3 w-3" />
+              </Badge>
+            ))}
+
+            {/* Technology chips - Yellow */}
+            {Object.entries(technologyFilters).map(([parent, { selected, children }]) => (
+              <React.Fragment key={`technology-${parent}`}>
+                {selected && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
+                    onClick={() => handleHierarchicalFilterToggle(technologyFilters, setTechnologyFilters, parent)}
+                  >
+                    <span className="text-yellow-600 dark:text-yellow-400 text-xs">Technology:</span> {parent}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {children.map((child) => (
+                  <Badge
+                    key={`technology-${parent}-${child}`}
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
+                    onClick={() => handleHierarchicalFilterToggle(technologyFilters, setTechnologyFilters, parent, child)}
+                  >
+                    <span className="text-yellow-600 dark:text-yellow-400 text-xs">Technology:</span> {child}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+              </React.Fragment>
+            ))}
+
+            {/* Location chips - White/Gray */}
+            {Object.entries(locationFilters).map(([parent, { selected, children }]) => (
+              <React.Fragment key={`location-${parent}`}>
+                {selected && (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-gray-700/70 border border-gray-300 dark:border-gray-600"
+                    onClick={() => handleHierarchicalFilterToggle(locationFilters, setLocationFilters, parent)}
+                  >
+                    <span className="text-gray-500 dark:text-gray-400 text-xs">Location:</span> {parent}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {children.map((child) => (
+                  <Badge
+                    key={`location-${parent}-${child}`}
+                    variant="secondary"
+                    className="flex items-center gap-1 cursor-pointer bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-gray-700/70 border border-gray-300 dark:border-gray-600"
+                    onClick={() => handleHierarchicalFilterToggle(locationFilters, setLocationFilters, parent, child)}
+                  >
+                    <span className="text-gray-500 dark:text-gray-400 text-xs">Location:</span> {child}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+              </React.Fragment>
+            ))}
+
+            {/* Clear all button */}
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{filteredData.length}</span> of{' '}
