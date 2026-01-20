@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ChevronDown, ChevronUp, Building2, X } from 'lucide-react';
 import React from 'react';
+import Link from 'next/link';
+import { createSlug } from '@/lib/types';
 import {
   industryCategories,
   technologyCategories,
@@ -605,9 +607,10 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
         {filteredData.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {filteredData.map((startup) => (
-              <div
+              <Link
                 key={startup.name}
-                className="border border-border bg-card p-4 hover:border-primary transition-colors cursor-pointer group"
+                href={`/companies/${createSlug(startup.name)}`}
+                className="block border border-border bg-card p-4 hover:border-primary transition-colors cursor-pointer group"
               >
                 <div className="flex items-start gap-4">
                   {/* Company Logo Placeholder */}
@@ -634,7 +637,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
