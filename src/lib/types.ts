@@ -6,10 +6,25 @@ export interface KeyPerson {
   linkedIn?: string;
 }
 
+export interface SocialMedia {
+  facebook?: string;
+  instagram?: string;
+  linkedIn?: string;
+  twitter?: string;
+  appStore?: string;
+  playStore?: string;
+  [key: string]: string | undefined;
+}
+
 export interface CompanyProfile {
-  // Header (Identity & Immediate Context)
+  // Identifiers
   slug: string;
+  companyId?: string;
+  ssmRegistrationNumber?: string;
+
+  // Header (Identity & Immediate Context)
   name: string;
+  legalName?: string;
   shortDescription: string;
   websiteUrl?: string;
   logoUrl?: string;
@@ -20,23 +35,63 @@ export interface CompanyProfile {
   // Classification (Taxonomy & Positioning)
   tags: {
     industry: string;
-    subIndustry: string;
+    subIndustry?: string;
+    otherIndustries?: string[];
     archetype: string;
     technology: string;
-    subTechnology: string;
+    subTechnology?: string;
+    otherTechnologies?: string[];
+    scienceTechnologies?: string[];
   };
 
   // Company Facts (Objective, Comparable Data)
   foundedYear: number;
+  foundedDate?: string;
   location: {
     city: string;
     state?: string;
     country: string;
+    fullAddress?: string;
+    postcode?: string;
+    latitude?: number;
+    longitude?: number;
   };
+
+  // Status & Stage
+  status: 'Operational' | 'Closed' | 'Acquired' | string;
+  exitType?: string;
+  growthStage?: string;
+  companySize?: string;
+  companyType?: string;
+
+  // Funding Information
   fundingStatus: 'Bootstrapped' | 'Funded';
+  totalFundsRaised?: number;
+  latestValuation?: number;
+  latestFundingRoundType?: string;
+  lastFundingDate?: string;
+  investorCount?: number;
+  openForFunding?: boolean;
+  openForInvestment?: boolean;
+
+  // Contact Information
+  emailAddress?: string;
+  phoneNumber?: string;
+
+  // Business Details
+  clientFocus?: string[];
+  ownership?: string;
+  impactGoals?: string[];
+  programsAccelerators?: string[];
 
   // People (Accountability & Credibility)
   keyPeople: KeyPerson[];
+  numberOfFounders?: number;
+  numberOfManagementTeam?: number;
+  numberOfKeyPersons?: number;
+
+  // Social Media
+  socialMedia?: SocialMedia;
 
   // Metadata (Trust & Freshness)
   lastUpdated: string; // ISO date string
