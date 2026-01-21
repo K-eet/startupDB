@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronUp, Building2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Building2, X, SlidersHorizontal } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
 import { createSlug } from '@/lib/types';
@@ -45,6 +45,9 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
   const [technologyFilters, setTechnologyFilters] = React.useState<HierarchicalFilter>({});
   const [archetypeFilters, setArchetypeFilters] = React.useState<string[]>([]);
   const [locationFilters, setLocationFilters] = React.useState<HierarchicalFilter>({});
+
+  // Mobile filter panel visibility (collapsed by default on mobile)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -120,42 +123,81 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
     archetypeFilters.length > 0 ||
     Object.keys(locationFilters).length > 0;
 
-  // Filter logic
+  // Helper function to apply filters to data
+  const applyFilters = React.useCallback(
+    (
+      sourceData: IntelligentStartupSearchOutput,
+      options: {
+        skipIndustry?: boolean;
+        skipTechnology?: boolean;
+        skipArchetype?: boolean;
+        skipLocation?: boolean;
+      } = {}
+    ) => {
+      return sourceData.filter((startup) => {
+        // Industry filter
+        if (!options.skipIndustry && Object.keys(industryFilters).length > 0) {
+          const parentMatch = industryFilters[startup.industry]?.selected;
+          const childMatch = industryFilters[startup.industry]?.children.includes(startup.subIndustry);
+          if (!parentMatch && !childMatch) return false;
+        }
+
+        // Technology filter
+        if (!options.skipTechnology && Object.keys(technologyFilters).length > 0) {
+          const parentMatch = technologyFilters[startup.technology]?.selected;
+          const childMatch = technologyFilters[startup.technology]?.children.includes(startup.subTechnology);
+          if (!parentMatch && !childMatch) return false;
+        }
+
+        // Archetype filter
+        if (!options.skipArchetype && archetypeFilters.length > 0) {
+          if (!archetypeFilters.includes(startup.archetype)) return false;
+        }
+
+        // Location filter
+        if (!options.skipLocation && Object.keys(locationFilters).length > 0) {
+          const parentMatch = locationFilters[startup.country]?.selected;
+          const childMatch = locationFilters[startup.country]?.children.includes(startup.city);
+          if (!parentMatch && !childMatch) return false;
+        }
+
+        return true;
+      });
+    },
+    [industryFilters, technologyFilters, archetypeFilters, locationFilters]
+  );
+
+  // Filter logic - full filtered data for display
   const filteredData = React.useMemo(() => {
-    return data.filter((startup) => {
-      // Industry filter
-      if (Object.keys(industryFilters).length > 0) {
-        const parentMatch = industryFilters[startup.industry]?.selected;
-        const childMatch = industryFilters[startup.industry]?.children.includes(startup.subIndustry);
-        if (!parentMatch && !childMatch) return false;
-      }
+    return applyFilters(data);
+  }, [data, applyFilters]);
 
-      // Technology filter
-      if (Object.keys(technologyFilters).length > 0) {
-        const parentMatch = technologyFilters[startup.technology]?.selected;
-        const childMatch = technologyFilters[startup.technology]?.children.includes(startup.subTechnology);
-        if (!parentMatch && !childMatch) return false;
-      }
+  // Filtered datasets for dynamic counts (excluding one filter category each)
+  const dataForIndustryCounts = React.useMemo(() => {
+    return applyFilters(data, { skipIndustry: true });
+  }, [data, applyFilters]);
 
-      // Archetype filter
-      if (archetypeFilters.length > 0) {
-        if (!archetypeFilters.includes(startup.archetype)) return false;
-      }
+  const dataForTechnologyCounts = React.useMemo(() => {
+    return applyFilters(data, { skipTechnology: true });
+  }, [data, applyFilters]);
 
-      // Location filter
-      if (Object.keys(locationFilters).length > 0) {
-        const parentMatch = locationFilters[startup.country]?.selected;
-        const childMatch = locationFilters[startup.country]?.children.includes(startup.city);
-        if (!parentMatch && !childMatch) return false;
-      }
+  const dataForArchetypeCounts = React.useMemo(() => {
+    return applyFilters(data, { skipArchetype: true });
+  }, [data, applyFilters]);
 
-      return true;
-    });
-  }, [data, industryFilters, technologyFilters, archetypeFilters, locationFilters]);
+  const dataForLocationCounts = React.useMemo(() => {
+    return applyFilters(data, { skipLocation: true });
+  }, [data, applyFilters]);
 
-  // Count helpers
+  // Count helpers - now using filtered data for dynamic counts
   const getParentCount = (field: 'industry' | 'technology' | 'country', parent: string) => {
-    return data.filter((s) => s[field] === parent).length;
+    const countData =
+      field === 'industry'
+        ? dataForIndustryCounts
+        : field === 'technology'
+          ? dataForTechnologyCounts
+          : dataForLocationCounts;
+    return countData.filter((s) => s[field] === parent).length;
   };
 
   const getChildCount = (
@@ -164,11 +206,17 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
     parent: string,
     child: string
   ) => {
-    return data.filter((s) => s[parentField] === parent && s[childField] === child).length;
+    const countData =
+      parentField === 'industry'
+        ? dataForIndustryCounts
+        : parentField === 'technology'
+          ? dataForTechnologyCounts
+          : dataForLocationCounts;
+    return countData.filter((s) => s[parentField] === parent && s[childField] === child).length;
   };
 
   const getArchetypeCount = (archetype: string) => {
-    return data.filter((s) => s.archetype === archetype).length;
+    return dataForArchetypeCounts.filter((s) => s.archetype === archetype).length;
   };
 
   const renderHierarchicalFilter = (
@@ -222,18 +270,16 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                   >
                     <Label
                       htmlFor={`${sectionKey}-${parent}`}
-                      className="text-sm font-normal cursor-pointer"
+                      className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                     >
                       {parent}
+                      <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">{parentCount}</span>
                     </Label>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-muted-foreground">{parentCount}</span>
-                      {isExpanded ? (
-                        <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
                   </button>
                 </div>
                 {isExpanded && (
@@ -253,10 +299,10 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                           />
                           <Label
                             htmlFor={`${sectionKey}-${parent}-${child}`}
-                            className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                            className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                           >
-                            <span>{child}</span>
-                            <span className="text-muted-foreground">{childCount}</span>
+                            {child}
+                            <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">{childCount}</span>
                           </Label>
                         </div>
                       );
@@ -276,7 +322,29 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
       {/* Sidebar Filters */}
       <aside className="w-full lg:w-80 flex-shrink-0">
         <div className="border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-4">
+          {/* Mobile: Collapsible header, Desktop: Always show filters */}
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="flex items-center justify-between w-full lg:hidden"
+          >
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              <h2 className="font-semibold text-sm uppercase tracking-wide">Filters</h2>
+              {hasActiveFilters && (
+                <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-lg">
+                  Active
+                </span>
+              )}
+            </div>
+            {mobileFiltersOpen ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </button>
+
+          {/* Desktop header (always visible) */}
+          <div className="hidden lg:flex items-center justify-between mb-4">
             <h2 className="font-semibold text-sm uppercase tracking-wide">Filters</h2>
             {hasActiveFilters && (
               <button
@@ -287,6 +355,20 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
               </button>
             )}
           </div>
+
+          {/* Filter content - hidden on mobile unless expanded, always visible on desktop */}
+          <div className={`${mobileFiltersOpen ? 'block' : 'hidden'} lg:block mt-4 lg:mt-0`}>
+            {/* Mobile clear all button */}
+            {hasActiveFilters && (
+              <div className="flex justify-end mb-4 lg:hidden">
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
 
           {/* Industry Filter - YC Classification */}
           <div>
@@ -315,10 +397,10 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                   />
                   <Label
                     htmlFor="industry-all"
-                    className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                    className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                   >
-                    <span>All industries</span>
-                    <span className="text-muted-foreground">{data.length}</span>
+                    All industries
+                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">{dataForIndustryCounts.length}</span>
                   </Label>
                 </div>
 
@@ -347,28 +429,26 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                           >
                             <Label
                               htmlFor={`industry-${parent}`}
-                              className="text-sm font-normal cursor-pointer"
+                              className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                             >
                               {parent}
-                            </Label>
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">
                                 {parentCount}
                               </span>
-                              {isExpanded ? (
-                                <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                              )}
-                            </div>
+                            </Label>
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                            )}
                           </button>
                         ) : (
                           <Label
                             htmlFor={`industry-${parent}`}
-                            className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                            className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                           >
-                            <span>{parent}</span>
-                            <span className="text-xs text-muted-foreground">
+                            {parent}
+                            <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">
                               {parentCount}
                             </span>
                           </Label>
@@ -394,10 +474,10 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                                 />
                                 <Label
                                   htmlFor={`industry-${parent}-${subName}`}
-                                  className="text-sm font-normal cursor-pointer flex-1 flex justify-between"
+                                  className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                                 >
-                                  <span>{subName}</span>
-                                  <span className="text-muted-foreground">{subCount}</span>
+                                  {subName}
+                                  <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">{subCount}</span>
                                 </Label>
                               </div>
                             );
@@ -444,10 +524,10 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                       />
                       <Label
                         htmlFor={`archetype-${archetype}`}
-                        className="text-sm font-normal cursor-pointer flex-1 flex justify-between min-w-0"
+                        className="text-sm font-normal cursor-pointer flex items-center gap-1.5 min-w-0"
                       >
-                        <span className="truncate flex-1" title={archetype}>{archetype}</span>
-                        <span className="text-muted-foreground ml-2 flex-shrink-0">{count}</span>
+                        <span className="truncate" title={archetype}>{archetype}</span>
+                        <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg flex-shrink-0">{count}</span>
                       </Label>
                     </div>
                   );
@@ -483,6 +563,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
             'city',
             'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400'
           )}
+          </div>
         </div>
       </aside>
 
