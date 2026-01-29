@@ -74,14 +74,19 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
       </header>
 
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl py-6">
-        {/* Back Link */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to directory
-        </Link>
+        {/* Back Link and Claim Button */}
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to directory
+          </Link>
+          <Button variant="default" size="sm">
+            Claim this Company
+          </Button>
+        </div>
 
         {/* ============================================ */}
         {/* 1. HEADER - Identity & Immediate Context */}
@@ -135,25 +140,17 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             {/* Industry */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Industry</span>
-              <div className="flex flex-wrap gap-1">
-                <Badge
-                  variant="secondary"
-                  className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                >
-                  {company.tags.industry}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
-                >
-                  {company.tags.subIndustry}
-                </Badge>
-              </div>
+              <Badge
+                variant="secondary"
+                className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+              >
+                {company.tags.industry} &gt; {company.tags.subIndustry}
+              </Badge>
             </div>
 
-            {/* Archetype */}
+            {/* Company Type */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Archetype</span>
+              <span className="text-sm text-muted-foreground">Company Type</span>
               <Badge
                 variant="secondary"
                 className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"

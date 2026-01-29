@@ -31,7 +31,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Infrastructure",
         technology: "Cloud",
         subTechnology: "Multi-cloud",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "United States",
         city: "Seattle"
     },
@@ -53,7 +53,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Security",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Israel",
         city: "Tel Aviv"
     },
@@ -97,7 +97,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Supply Chain and Logistics",
         technology: "Cloud",
         subTechnology: "Azure",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "Singapore",
         city: "Singapore"
     },
@@ -119,7 +119,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Asset Management",
         technology: "Cloud",
         subTechnology: "Multi-cloud",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Singapore",
         city: "Singapore"
     },
@@ -130,7 +130,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Insurance",
         technology: "AI/ML",
         subTechnology: "NLP",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "United States",
         city: "New York"
     },
@@ -152,7 +152,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Drug Discovery and Delivery",
         technology: "Data",
         subTechnology: "Analytics",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "United States",
         city: "Boston"
     },
@@ -163,7 +163,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Diagnostics",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "India",
         city: "Bangalore"
     },
@@ -185,7 +185,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Infrastructure",
         technology: "AI/ML",
         subTechnology: "LLMs",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "United States",
         city: "San Francisco"
     },
@@ -196,7 +196,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Engineering, Product and Design",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "Germany",
         city: "Munich"
     },
@@ -218,7 +218,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Energy",
         technology: "Data",
         subTechnology: "Analytics",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Australia",
         city: "Sydney"
     },
@@ -229,7 +229,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Climate",
         technology: "Data",
         subTechnology: "Analytics",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Canada",
         city: "Vancouver"
     },
@@ -251,7 +251,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Manufacturing and Robotics",
         technology: "AI/ML",
         subTechnology: "NLP",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Japan",
         city: "Tokyo"
     },
@@ -262,7 +262,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Manufacturing and Robotics",
         technology: "Cloud",
         subTechnology: "Azure",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "Germany",
         city: "Berlin"
     },
@@ -273,7 +273,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Infrastructure",
         technology: "Data",
         subTechnology: "Analytics",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "United States",
         city: "Austin"
     },
@@ -306,7 +306,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Security",
         technology: "Cloud",
         subTechnology: "Multi-cloud",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "Israel",
         city: "Tel Aviv"
     },
@@ -328,7 +328,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Infrastructure",
         technology: "Cloud",
         subTechnology: "Multi-cloud",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Sweden",
         city: "Stockholm"
     },
@@ -372,7 +372,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Credit and Lending",
         technology: "AI/ML",
         subTechnology: "NLP",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "India",
         city: "Mumbai"
     },
@@ -394,7 +394,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Insurance",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Tech Solution & Integration Provider",
+        archetype: "Solution Provider/System Integrator",
         country: "United States",
         city: "New York"
     },
@@ -405,7 +405,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Drug Discovery and Delivery",
         technology: "AI/ML",
         subTechnology: "LLMs",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "United States",
         city: "Boston"
     },
@@ -427,7 +427,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Healthcare IT",
         technology: "AI/ML",
         subTechnology: "NLP",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "United Kingdom",
         city: "Cambridge"
     },
@@ -460,7 +460,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Energy",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Sweden",
         city: "Stockholm"
     },
@@ -482,7 +482,7 @@ export const initialStartups: IntelligentStartupSearchOutput = [
         subIndustry: "Manufacturing and Robotics",
         technology: "AI/ML",
         subTechnology: "Computer Vision",
-        archetype: "Deep-Tech Company",
+        archetype: "Product-Led Startup/Scaleup",
         country: "Germany",
         city: "Berlin"
     },

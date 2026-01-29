@@ -136,7 +136,14 @@ export function AppShell({
 
         {/* Page title and description */}
         <div className="mt-6">
-          <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
+            {activeTab === 'startups' && (
+              <Button variant="default" size="sm">
+                Add a Company
+              </Button>
+            )}
+          </div>
           {description && (
             <div className="text-muted-foreground mt-2">
               {description}

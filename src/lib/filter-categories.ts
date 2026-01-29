@@ -76,9 +76,8 @@ export const technologyCategories: Record<string, string[]> = {
 
 export const archetypes = [
   "Product-Led Startup/Scaleup",
-  "Tech Solution & Integration Provider",
+  "Solution Provider/System Integrator",
   "Custom Software Developer",
-  "Deep-Tech Company",
   "ICT Partner & Reseller",
 ] as const;
 

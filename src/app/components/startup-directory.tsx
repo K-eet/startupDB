@@ -137,16 +137,31 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
       return sourceData.filter((startup) => {
         // Industry filter
         if (!options.skipIndustry && Object.keys(industryFilters).length > 0) {
-          const parentMatch = industryFilters[startup.industry]?.selected;
-          const childMatch = industryFilters[startup.industry]?.children.includes(startup.subIndustry);
-          if (!parentMatch && !childMatch) return false;
+          const filterEntry = industryFilters[startup.industry];
+          if (!filterEntry) return false;
+
+          const selectedChildren = filterEntry.children;
+          // If specific sub-industries are selected, only those pass
+          if (selectedChildren.length > 0) {
+            if (!selectedChildren.includes(startup.subIndustry)) return false;
+          }
+          // If only parent is selected (no specific children), all sub-industries pass
+          else if (!filterEntry.selected) {
+            return false;
+          }
         }
 
         // Technology filter
         if (!options.skipTechnology && Object.keys(technologyFilters).length > 0) {
-          const parentMatch = technologyFilters[startup.technology]?.selected;
-          const childMatch = technologyFilters[startup.technology]?.children.includes(startup.subTechnology);
-          if (!parentMatch && !childMatch) return false;
+          const filterEntry = technologyFilters[startup.technology];
+          if (!filterEntry) return false;
+
+          const selectedChildren = filterEntry.children;
+          if (selectedChildren.length > 0) {
+            if (!selectedChildren.includes(startup.subTechnology)) return false;
+          } else if (!filterEntry.selected) {
+            return false;
+          }
         }
 
         // Archetype filter
@@ -156,9 +171,15 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
 
         // Location filter
         if (!options.skipLocation && Object.keys(locationFilters).length > 0) {
-          const parentMatch = locationFilters[startup.country]?.selected;
-          const childMatch = locationFilters[startup.country]?.children.includes(startup.city);
-          if (!parentMatch && !childMatch) return false;
+          const filterEntry = locationFilters[startup.country];
+          if (!filterEntry) return false;
+
+          const selectedChildren = filterEntry.children;
+          if (selectedChildren.length > 0) {
+            if (!selectedChildren.includes(startup.city)) return false;
+          } else if (!filterEntry.selected) {
+            return false;
+          }
         }
 
         return true;
@@ -260,13 +281,14 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                   <Checkbox
                     id={`${sectionKey}-${parent}`}
                     checked={isParentSelected}
-                    onCheckedChange={() =>
-                      handleHierarchicalFilterToggle(filters, setFilters, parent)
-                    }
+                    onCheckedChange={() => {
+                      setExpandedParents((prev) => ({ ...prev, [`${sectionKey}-${parent}`]: !isParentSelected }));
+                      handleHierarchicalFilterToggle(filters, setFilters, parent);
+                    }}
                   />
                   <button
                     onClick={() => toggleParentExpand(`${sectionKey}-${parent}`)}
-                    className="flex-1 flex items-center justify-between text-left"
+                    className="flex-1 flex items-center text-left"
                   >
                     <Label
                       htmlFor={`${sectionKey}-${parent}`}
@@ -275,11 +297,6 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                       {parent}
                       <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-lg">{parentCount}</span>
                     </Label>
-                    {isExpanded ? (
-                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                    )}
                   </button>
                 </div>
                 {isExpanded && (
@@ -418,14 +435,17 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                         <Checkbox
                           id={`industry-${parent}`}
                           checked={isParentSelected}
-                          onCheckedChange={() =>
-                            handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, parent)
-                          }
+                          onCheckedChange={() => {
+                            if (hasSubcategories) {
+                              setExpandedParents((prev) => ({ ...prev, [`industry-${parent}`]: !isParentSelected }));
+                            }
+                            handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, parent);
+                          }}
                         />
                         {hasSubcategories ? (
                           <button
                             onClick={() => toggleParentExpand(`industry-${parent}`)}
-                            className="flex-1 flex items-center justify-between text-left"
+                            className="flex-1 flex items-center text-left"
                           >
                             <Label
                               htmlFor={`industry-${parent}`}
@@ -436,11 +456,6 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                                 {parentCount}
                               </span>
                             </Label>
-                            {isExpanded ? (
-                              <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                            )}
                           </button>
                         ) : (
                           <Label
@@ -501,7 +516,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
             >
               <span className="font-medium text-sm flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500"></span>
-                Archetype
+                Company Type
               </span>
               {openSections.archetype ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -609,7 +624,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                 className="flex items-center gap-1 cursor-pointer bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
                 onClick={() => handleArchetypeToggle(archetype)}
               >
-                <span className="text-blue-600 dark:text-blue-400 text-xs">Archetype:</span> {archetype}
+                <span className="text-blue-600 dark:text-blue-400 text-xs">Company Type:</span> {archetype}
                 <X className="h-3 w-3" />
               </Badge>
             ))}
