@@ -26,6 +26,7 @@ From Fortune 500 companies to high-growth startups, organizations trust DataPuls
       country: 'United States',
     },
     fundingStatus: 'Funded',
+    companySize: '1-50',
     keyPeople: [
       {
         name: 'Sarah Chen',
@@ -68,6 +69,7 @@ Trusted by engineering teams at leading technology companies, CodeForge has help
       country: 'United States',
     },
     fundingStatus: 'Funded',
+    companySize: '1-50',
     keyPeople: [
       {
         name: 'James Rodriguez',
@@ -105,6 +107,7 @@ With over 5 million customers across 15 countries, NeoBank is proving that finan
       country: 'United Kingdom',
     },
     fundingStatus: 'Funded',
+    companySize: '1-50',
     keyPeople: [
       {
         name: 'David Okonkwo',

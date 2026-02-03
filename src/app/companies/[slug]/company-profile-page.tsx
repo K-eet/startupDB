@@ -11,7 +11,7 @@ import {
   MapPin,
   Calendar,
   Clock,
-  Banknote,
+  Users,
   ArrowLeft,
   ExternalLink,
   Linkedin,
@@ -23,12 +23,21 @@ interface CompanyProfilePageProps {
   company: CompanyProfile;
 }
 
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const month = months[date.getUTCMonth()];
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
 export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
-  const formattedDate = new Date(company.lastUpdated).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = formatDate(company.lastUpdated);
 
   return (
     <main className="min-h-screen bg-background">
@@ -277,30 +286,23 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
                   </div>
                 </div>
 
-                {/* Funding Status */}
-                <div className="flex items-start gap-3">
-                  <Banknote className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Funding Status</p>
-                    <Badge
-                      variant={company.fundingStatus === 'Funded' ? 'default' : 'secondary'}
-                      className={
-                        company.fundingStatus === 'Funded'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                          : ''
-                      }
-                    >
-                      {company.fundingStatus}
-                    </Badge>
+                {/* Company Size */}
+                {company.companySize && (
+                  <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Company Size</p>
+                      <p className="text-sm text-muted-foreground">{company.companySize} employees</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </section>
 
-            {/* Quick Actions */}
+            {/* Links */}
             <section className="border border-border bg-card p-5">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                Quick Actions
+                Links
               </h2>
               <div className="space-y-2">
                 {company.websiteUrl && (
@@ -311,10 +313,6 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
                     </a>
                   </Button>
                 )}
-                <Button variant="outline" className="w-full justify-start" disabled>
-                  <Banknote className="h-4 w-4 mr-2" />
-                  View Funding History
-                </Button>
               </div>
             </section>
           </div>

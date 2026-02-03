@@ -61,7 +61,7 @@ export interface CompanyProfile {
   status: 'Operational' | 'Closed' | 'Acquired' | string;
   exitType?: string;
   growthStage?: string;
-  companySize?: string;
+  companySize?: '1-50' | '51-100' | '101-500' | '>500';
   companyType?: string;
 
   // Funding Information
