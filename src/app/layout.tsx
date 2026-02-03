@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/app/components/theme-provider';
+import { SponsorTicker } from '@/app/components/sponsor-ticker';
 
 export const metadata: Metadata = {
   title: 'StartupDB',
@@ -21,7 +22,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans antialiased" suppressHydrationWarning>
+      <body className="font-sans antialiased pb-12" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -30,6 +31,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <SponsorTicker />
         </ThemeProvider>
       </body>
     </html>

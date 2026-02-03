@@ -57,3 +57,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Sponsor ticker animation - seamless infinite scroll */
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(var(--track-width) * -1));
+  }
+}
+
+.ticker-track {
+  animation: ticker-scroll 100s linear infinite;
+  will-change: transform;
+}
+
+.ticker-container:hover .ticker-track {
+  animation-play-state: paused;
+}
