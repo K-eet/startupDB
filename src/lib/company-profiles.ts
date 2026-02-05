@@ -57,7 +57,7 @@ Our intelligent code review system catches bugs, security vulnerabilities, and p
 Trusted by engineering teams at leading technology companies, CodeForge has helped developers ship 40% faster while reducing bugs by 60%. Our platform supports all major programming languages and frameworks, making it the universal tool for modern software development.`,
     tags: {
       industry: 'B2B',
-      subIndustry: 'Engineering, Product and Design',
+      subIndustry: 'Engineering & Product Tools',
       archetype: 'Product-Led Startup/Scaleup',
       technology: 'AI/ML',
       subTechnology: 'LLMs',
@@ -96,7 +96,7 @@ Using alternative data and machine learning, we assess creditworthiness beyond t
 With over 5 million customers across 15 countries, NeoBank is proving that financial inclusion and profitability can go hand in hand. We're building the infrastructure for a more equitable financial future.`,
     tags: {
       industry: 'Fintech',
-      subIndustry: 'Banking and Exchange',
+      subIndustry: 'Banking & Capital Markets',
       archetype: 'Product-Led Startup/Scaleup',
       technology: 'Cloud',
       subTechnology: 'AWS',
