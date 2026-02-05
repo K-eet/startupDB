@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Search } from 'lucide-react';
 import StartupDirectory from '@/app/components/startup-directory';
 import VCDirectory from '@/app/components/vc-directory';
-import { initialStartups, initialVCFirms } from '@/lib/initial-data';
+import { initialVCFirms } from '@/lib/initial-data';
+import { useAllCompanies } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';
 import { AppShell } from '@/app/components/app-shell';
 import Link from 'next/link';
@@ -30,8 +31,11 @@ function SearchButton() {
 export default function Home() {
   const [activeTab, setActiveTab] = React.useState<'startups' | 'vcs' | 'events'>('startups');
 
+  // Fetch companies from Firestore
+  const { companies, loading: companiesLoading, error: companiesError } = useAllCompanies();
+
   const initialState: SearchState = {
-    startups: initialStartups,
+    startups: [],
     vcs: initialVCFirms,
     error: null,
     timestamp: Date.now(),
@@ -49,6 +53,16 @@ export default function Home() {
       });
     }
   }, [state.error, state.timestamp, toast]);
+
+  React.useEffect(() => {
+    if (companiesError) {
+      toast({
+        variant: 'destructive',
+        title: 'Error Loading Companies',
+        description: companiesError,
+      });
+    }
+  }, [companiesError, toast]);
 
   const pageName = activeTab === 'startups' ? 'Directory' : 'VC Directory';
 
@@ -69,7 +83,8 @@ export default function Home() {
       <div>
         {activeTab === 'startups' && (
           <StartupDirectory
-            data={state.startups}
+            data={companies}
+            loading={companiesLoading}
             searchBar={
               <Card>
                 <CardContent className="p-4">

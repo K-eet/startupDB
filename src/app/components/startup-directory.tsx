@@ -1,14 +1,13 @@
 'use client';
 
-import type { IntelligentStartupSearchOutput } from '@/ai/flows/intelligent-startup-search';
+import type { Company } from '@/types/company';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronUp, Building2, X, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, Building2, X, SlidersHorizontal, Loader2 } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
-import { createSlug } from '@/lib/types';
 import {
   industryCategories,
   technologyCategories,
@@ -17,7 +16,8 @@ import {
 } from '@/lib/filter-categories';
 
 type StartupDirectoryProps = {
-  data: IntelligentStartupSearchOutput;
+  data: Company[];
+  loading?: boolean;
   searchBar?: React.ReactNode;
 };
 
@@ -28,7 +28,7 @@ type HierarchicalFilter = {
   };
 };
 
-export default function StartupDirectory({ data, searchBar }: StartupDirectoryProps) {
+export default function StartupDirectory({ data, loading = false, searchBar }: StartupDirectoryProps) {
   // Filter section open/close state
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
     industry: true,
@@ -126,7 +126,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
   // Helper function to apply filters to data
   const applyFilters = React.useCallback(
     (
-      sourceData: IntelligentStartupSearchOutput,
+      sourceData: Company[],
       options: {
         skipIndustry?: boolean;
         skipTechnology?: boolean;
@@ -137,13 +137,13 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
       return sourceData.filter((startup) => {
         // Industry filter
         if (!options.skipIndustry && Object.keys(industryFilters).length > 0) {
-          const filterEntry = industryFilters[startup.industry];
+          const filterEntry = industryFilters[startup['Industry']];
           if (!filterEntry) return false;
 
           const selectedChildren = filterEntry.children;
           // If specific sub-industries are selected, only those pass
           if (selectedChildren.length > 0) {
-            if (!selectedChildren.includes(startup.subIndustry)) return false;
+            if (!selectedChildren.includes(startup['Sub-Industry'])) return false;
           }
           // If only parent is selected (no specific children), all sub-industries pass
           else if (!filterEntry.selected) {
@@ -153,12 +153,12 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
 
         // Technology filter
         if (!options.skipTechnology && Object.keys(technologyFilters).length > 0) {
-          const filterEntry = technologyFilters[startup.technology];
+          const filterEntry = technologyFilters[startup['Technology']];
           if (!filterEntry) return false;
 
           const selectedChildren = filterEntry.children;
           if (selectedChildren.length > 0) {
-            if (!selectedChildren.includes(startup.subTechnology)) return false;
+            if (!selectedChildren.includes(startup['Sub-Technology'])) return false;
           } else if (!filterEntry.selected) {
             return false;
           }
@@ -166,17 +166,17 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
 
         // Archetype filter
         if (!options.skipArchetype && archetypeFilters.length > 0) {
-          if (!archetypeFilters.includes(startup.archetype)) return false;
+          if (!archetypeFilters.includes(startup['Company Type'])) return false;
         }
 
         // Location filter
         if (!options.skipLocation && Object.keys(locationFilters).length > 0) {
-          const filterEntry = locationFilters[startup.country];
+          const filterEntry = locationFilters[startup['Headquarters Country']];
           if (!filterEntry) return false;
 
           const selectedChildren = filterEntry.children;
           if (selectedChildren.length > 0) {
-            if (!selectedChildren.includes(startup.city)) return false;
+            if (!selectedChildren.includes(startup['Headquarters City'])) return false;
           } else if (!filterEntry.selected) {
             return false;
           }
@@ -218,7 +218,12 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
         : field === 'technology'
           ? dataForTechnologyCounts
           : dataForLocationCounts;
-    return countData.filter((s) => s[field] === parent).length;
+    const fieldMap = {
+      industry: 'Industry',
+      technology: 'Technology',
+      country: 'Headquarters Country',
+    } as const;
+    return countData.filter((s) => s[fieldMap[field]] === parent).length;
   };
 
   const getChildCount = (
@@ -233,11 +238,21 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
         : parentField === 'technology'
           ? dataForTechnologyCounts
           : dataForLocationCounts;
-    return countData.filter((s) => s[parentField] === parent && s[childField] === child).length;
+    const parentFieldMap = {
+      industry: 'Industry',
+      technology: 'Technology',
+      country: 'Headquarters Country',
+    } as const;
+    const childFieldMap = {
+      subIndustry: 'Sub-Industry',
+      subTechnology: 'Sub-Technology',
+      city: 'Headquarters City',
+    } as const;
+    return countData.filter((s) => s[parentFieldMap[parentField]] === parent && s[childFieldMap[childField]] === child).length;
   };
 
   const getArchetypeCount = (archetype: string) => {
-    return dataForArchetypeCounts.filter((s) => s.archetype === archetype).length;
+    return dataForArchetypeCounts.filter((s) => s['Company Type'] === archetype).length;
   };
 
   const renderHierarchicalFilter = (
@@ -248,7 +263,8 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
     setFilters: React.Dispatch<React.SetStateAction<HierarchicalFilter>>,
     parentField: 'industry' | 'technology' | 'country',
     childField: 'subIndustry' | 'subTechnology' | 'city',
-    colorClass: string
+    colorClass: string,
+    hideZeroCounts: boolean = false
   ) => (
     <div>
       <button
@@ -269,7 +285,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
         <div className="space-y-1 mt-2">
           {Object.entries(categories).map(([parent, children]) => {
             const parentCount = getParentCount(parentField, parent);
-            if (parentCount === 0) return null;
+            if (hideZeroCounts && parentCount === 0) return null;
 
             const isExpanded = expandedParents[`${sectionKey}-${parent}`];
             const isParentSelected = filters[parent]?.selected || false;
@@ -303,7 +319,7 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
                   <div className="ml-6 space-y-1">
                     {children.map((child) => {
                       const childCount = getChildCount(parentField, childField, parent, child);
-                      if (childCount === 0) return null;
+                      if (hideZeroCounts && childCount === 0) return null;
 
                       return (
                         <div key={child} className="flex items-center space-x-2">
@@ -528,7 +544,6 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
               <div className="space-y-2 mt-2">
                 {archetypes.map((archetype) => {
                   const count = getArchetypeCount(archetype);
-                  if (count === 0) return null;
 
                   return (
                     <div key={archetype} className="flex items-center space-x-2">
@@ -576,7 +591,8 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
             setLocationFilters,
             'country',
             'city',
-            'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400'
+            'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400',
+            true // hideZeroCounts - Location filter is dynamic
           )}
           </div>
         </div>
@@ -700,12 +716,16 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
           </p>
         </div>
 
-        {filteredData.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredData.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {filteredData.map((startup) => (
               <Link
-                key={startup.name}
-                href={`/companies/${createSlug(startup.name)}`}
+                key={startup['StartupDB_ID'] || startup['Slug'] || startup['Company Name']}
+                href={`/companies/${startup['Slug'] || ''}`}
                 className="block border border-border bg-card p-4 hover:border-primary transition-colors cursor-pointer group"
               >
                 <div className="flex items-start gap-4">
@@ -716,20 +736,26 @@ export default function StartupDirectory({ data, searchBar }: StartupDirectoryPr
 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors">
-                      {startup.name}
+                      {startup['Company Name'] || 'Unnamed Company'}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {startup.description}
+                      {startup['One-line company description'] || ''}
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {startup.industry} &gt; {startup.subIndustry}
-                      </Badge>
-                      <span className="text-muted-foreground">|</span>
-                      <Badge variant="outline" className="text-xs">
-                        {startup.archetype}
-                      </Badge>
+                      {startup['Industry'] && (
+                        <Badge variant="secondary" className="text-xs">
+                          {startup['Industry']}{startup['Sub-Industry'] ? ` > ${startup['Sub-Industry']}` : ''}
+                        </Badge>
+                      )}
+                      {startup['Company Type'] && (
+                        <>
+                          <span className="text-muted-foreground">|</span>
+                          <Badge variant="outline" className="text-xs">
+                            {startup['Company Type']}
+                          </Badge>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -14,10 +14,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { CompanyProfile, KeyPerson, SocialMedia } from '../src/lib/types';
 
-// Initialize Firebase Admin (uses GOOGLE_APPLICATION_CREDENTIALS or default credentials)
+// Initialize Firebase Admin with service account
 if (getApps().length === 0) {
+  const serviceAccountPath = path.resolve(__dirname, '../data/studio-7465988978-5ed5b-firebase-adminsdk-fbsvc-d8919e0dca.json');
   initializeApp({
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-7465988978-5ed5b',
+    credential: cert(serviceAccountPath),
+    projectId: 'studio-7465988978-5ed5b',
   });
 }
 

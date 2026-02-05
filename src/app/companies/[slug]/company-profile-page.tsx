@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { CompanyProfile, formatCompanyAge } from '@/lib/types';
+import type { Company } from '@/types/company';
+import { calculateCompanyAge, parseFounders, toArray } from '@/types/company';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/app/components/theme-toggle';
@@ -14,30 +15,17 @@ import {
   Users,
   ArrowLeft,
   ExternalLink,
-  Linkedin,
   User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CompanyProfilePageProps {
-  company: CompanyProfile;
-}
-
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const month = months[date.getUTCMonth()];
-  const day = date.getUTCDate();
-  const year = date.getUTCFullYear();
-  return `${month} ${day}, ${year}`;
+  company: Company;
 }
 
 export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
-  const formattedDate = formatDate(company.lastUpdated);
+  const founders = parseFounders(company['Founder Names'], company['Founder Titles']);
+  const companyAge = calculateCompanyAge(company['Founded Year']);
 
   return (
     <main className="min-h-screen bg-background">
@@ -104,36 +92,28 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
           <div className="flex items-start gap-6">
             {/* Company Logo */}
             <div className="w-20 h-20 md:w-24 md:h-24 bg-secondary border border-border flex items-center justify-center flex-shrink-0">
-              {company.logoUrl ? (
-                <img
-                  src={company.logoUrl}
-                  alt={`${company.name} logo`}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <Building2 className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
-              )}
+              <Building2 className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />
             </div>
 
             {/* Company Name & Short Description */}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
-                {company.name}
+                {company['Company Name'] || 'Unnamed Company'}
               </h1>
               <p className="text-lg text-muted-foreground mb-4">
-                {company.shortDescription}
+                {company['One-line company description'] || ''}
               </p>
 
               {/* Website Link */}
-              {company.websiteUrl && (
+              {company['Website URL'] && (
                 <a
-                  href={company.websiteUrl}
+                  href={company['Website URL']}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
                 >
                   <Globe className="h-4 w-4" />
-                  {company.websiteUrl.replace(/^https?:\/\//, '')}
+                  {company['Website URL'].replace(/^https?:\/\//, '')}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -147,45 +127,54 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
         <section className="mb-8">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             {/* Industry */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Industry</span>
-              <Badge
-                variant="secondary"
-                className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-              >
-                {company.tags.industry} &gt; {company.tags.subIndustry}
-              </Badge>
-            </div>
-
-            {/* Company Type */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Company Type</span>
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-              >
-                {company.tags.archetype}
-              </Badge>
-            </div>
-
-            {/* Technology */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Technology</span>
-              <div className="flex flex-wrap gap-1">
+            {company['Industry'] && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Industry</span>
                 <Badge
                   variant="secondary"
-                  className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                  className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                 >
-                  {company.tags.technology}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
-                >
-                  {company.tags.subTechnology}
+                  {company['Industry']}{company['Sub-Industry'] ? ` > ${company['Sub-Industry']}` : ''}
                 </Badge>
               </div>
-            </div>
+            )}
+
+            {/* Company Type */}
+            {company['Company Type'] && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Company Type</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                >
+                  {company['Company Type']}
+                </Badge>
+              </div>
+            )}
+
+            {/* Technology */}
+            {company['Technology'] && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Technology</span>
+                <div className="flex flex-wrap gap-1">
+                  <Badge
+                    variant="secondary"
+                    className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                  >
+                    {company['Technology']}
+                  </Badge>
+                  {toArray(company['Sub-Technology']).map((subTech, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+                    >
+                      {subTech}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -195,55 +184,49 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             {/* ============================================ */}
             {/* 2. OVERVIEW - Expanded Understanding */}
             {/* ============================================ */}
-            <section>
-              <h2 className="text-lg font-semibold mb-4">About {company.name}</h2>
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                {company.longDescription.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="text-muted-foreground mb-4 last:mb-0">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
+            {company['Description'] && (
+              <section>
+                <h2 className="text-lg font-semibold mb-4">About {company['Company Name']}</h2>
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  {company['Description'].split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="text-muted-foreground mb-4 last:mb-0">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
 
-            <Separator />
+            {founders.length > 0 && (
+              <>
+                <Separator />
 
-            {/* ============================================ */}
-            {/* 5. PEOPLE - Accountability & Credibility */}
-            {/* ============================================ */}
-            <section>
-              <h2 className="text-lg font-semibold mb-4">Key People</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {company.keyPeople.map((person, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 border border-border bg-card"
-                  >
-                    {/* Avatar Placeholder */}
-                    <div className="w-12 h-12 bg-secondary border border-border flex items-center justify-center flex-shrink-0">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{person.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{person.title}</p>
-                    </div>
-
-                    {person.linkedIn && (
-                      <a
-                        href={person.linkedIn}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
-                        aria-label={`${person.name}'s LinkedIn profile`}
+                {/* ============================================ */}
+                {/* 5. PEOPLE - Accountability & Credibility */}
+                {/* ============================================ */}
+                <section>
+                  <h2 className="text-lg font-semibold mb-4">Key People</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {founders.map((person, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 border border-border bg-card"
                       >
-                        <Linkedin className="h-5 w-5" />
-                      </a>
-                    )}
+                        {/* Avatar Placeholder */}
+                        <div className="w-12 h-12 bg-secondary border border-border flex items-center justify-center flex-shrink-0">
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{person.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{person.title}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
+                </section>
+              </>
+            )}
           </div>
 
           {/* Right Column - Sidebar */}
@@ -254,45 +237,51 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             <section className="border border-border bg-card p-5">
               <div className="space-y-4">
                 {/* Founded Year */}
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Founded</p>
-                    <p className="text-sm text-muted-foreground">{company.foundedYear}</p>
+                {company['Founded Year'] && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Founded</p>
+                      <p className="text-sm text-muted-foreground">{company['Founded Year']}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Company Age */}
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Company Age</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCompanyAge(company.foundedYear)}
-                    </p>
+                {company['Founded Year'] && (
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Company Age</p>
+                      <p className="text-sm text-muted-foreground">{companyAge}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Location */}
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground">
-                      {company.location.city}
-                      {company.location.state && `, ${company.location.state}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{company.location.country}</p>
+                {(company['Headquarters City'] || company['Headquarters Country']) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Location</p>
+                      <p className="text-sm text-muted-foreground">
+                        {company['Headquarters City']}
+                        {company['Headquarters State'] && `, ${company['Headquarters State']}`}
+                      </p>
+                      {company['Headquarters Country'] && (
+                        <p className="text-xs text-muted-foreground">{company['Headquarters Country']}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Company Size */}
-                {company.companySize && (
+                {company['Company Size'] && (
                   <div className="flex items-start gap-3">
                     <Users className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium">Company Size</p>
-                      <p className="text-sm text-muted-foreground">{company.companySize} employees</p>
+                      <p className="text-sm text-muted-foreground">{company['Company Size']} employees</p>
                     </div>
                   </div>
                 )}
@@ -300,32 +289,23 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             </section>
 
             {/* Links */}
-            <section className="border border-border bg-card p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                Links
-              </h2>
-              <div className="space-y-2">
-                {company.websiteUrl && (
+            {company['Website URL'] && (
+              <section className="border border-border bg-card p-5">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                  Links
+                </h2>
+                <div className="space-y-2">
                   <Button variant="outline" className="w-full justify-start" asChild>
-                    <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer">
+                    <a href={company['Website URL']} target="_blank" rel="noopener noreferrer">
                       <Globe className="h-4 w-4 mr-2" />
                       Visit Website
                     </a>
                   </Button>
-                )}
-              </div>
-            </section>
+                </div>
+              </section>
+            )}
           </div>
         </div>
-
-        {/* ============================================ */}
-        {/* 6. METADATA - Trust & Freshness */}
-        {/* ============================================ */}
-        <footer className="mt-12 pt-6 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            Last updated: {formattedDate}
-          </p>
-        </footer>
       </div>
     </main>
   );

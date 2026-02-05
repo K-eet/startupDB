@@ -1,39 +1,43 @@
-import { notFound } from 'next/navigation';
-import { getCompanyBySlug, getAllCompanySlugs } from '@/lib/company-profiles';
-import { formatCompanyAge } from '@/lib/types';
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useCompany } from '@/hooks/useCompanies';
 import { CompanyProfilePage } from './company-profile-page';
+import { Loader2 } from 'lucide-react';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
+export default function CompanyPage() {
+  const params = useParams();
+  const slug = typeof params.slug === 'string' ? params.slug : '';
+  const { company, loading, error } = useCompany(slug);
 
-export async function generateStaticParams() {
-  const slugs = getAllCompanySlugs();
-  return slugs.map((slug) => ({ slug }));
-}
-
-export async function generateMetadata({ params }: PageProps) {
-  const { slug } = await params;
-  const company = getCompanyBySlug(slug);
-
-  if (!company) {
-    return {
-      title: 'Company Not Found | StartupDB',
-    };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
-  return {
-    title: `${company.name} | StartupDB`,
-    description: company.shortDescription,
-  };
-}
-
-export default async function CompanyPage({ params }: PageProps) {
-  const { slug } = await params;
-  const company = getCompanyBySlug(slug);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Error</h1>
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!company) {
-    notFound();
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Company Not Found</h1>
+          <p className="text-muted-foreground">The company you&apos;re looking for doesn&apos;t exist.</p>
+        </div>
+      </div>
+    );
   }
 
   return <CompanyProfilePage company={company} />;
