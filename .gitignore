@@ -49,6 +49,7 @@ firestore-debug.log
 
 # docs (local only)
 /docs/
+CLAUDE.md
 
 # data files (CSV uploads, etc.)
 /data/
