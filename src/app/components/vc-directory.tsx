@@ -1,6 +1,12 @@
 'use client';
 
-import type { IntelligentVCSearchOutput } from '@/ai/flows/intelligent-vc-search';
+export interface VCFirm {
+  name: string;
+  investmentFocus: string;
+  contactDetails: string;
+}
+
+export type VCFirmList = VCFirm[];
 import {
   Accordion,
   AccordionContent,
@@ -20,7 +26,7 @@ import { Mail } from 'lucide-react';
 import React from 'react';
 
 type VCDirectoryProps = {
-  data: IntelligentVCSearchOutput;
+  data: VCFirmList;
   searchBar?: React.ReactNode;
 };
 

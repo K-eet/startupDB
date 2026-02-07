@@ -47,5 +47,8 @@ firestore-debug.log
 # claude context
 .claude-context/
 
+# docs (local only)
+/docs/
+
 # data files (CSV uploads, etc.)
 /data/
