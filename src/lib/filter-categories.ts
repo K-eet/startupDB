@@ -34,7 +34,7 @@ export const industryCategories: Record<string, string[]> = {
     "Travel, Leisure & Tourism",
     "Work & Careers",
   ],
-  "Fintech": [
+  "FinTech": [
     "Asset Management",
     "Banking & Capital Markets",
     "Consumer Finance",
@@ -90,15 +90,22 @@ export const industryCategories: Record<string, string[]> = {
 };
 
 export const technologyCategories: Record<string, string[]> = {
-  "Cloud": ["AWS", "Azure", "GCP", "Multi-cloud"],
-  "AI/ML": ["LLMs", "Computer Vision", "NLP"],
-  "Data": ["Analytics", "Warehousing", "ETL"],
-  "Mobile": ["iOS", "Android", "Cross-platform"],
+  "Artificial Intelligence": [],
+  "Biotechnology": [],
+  "Blockchain": [],
+  "Development Tool": [],
+  "e-Commerce": [],
+  "e-payment": [],
+  "Fintech Lending": [],
+  "Healthtech": [],
+  "Hrtech": [],
+  "Robotics": [],
+  "Sharing Economy/Consumer": [],
 };
 
 export const archetypes = [
-  "Product-Led Startup/Scaleup",
-  "Solution Provider/System Integrator",
+  "Product-Led Startup / Scaleup",
+  "Solution Provider / Systems Integrator",
   "Custom Software Developer",
   "ICT Partner & Reseller",
 ] as const;
@@ -106,6 +113,18 @@ export const archetypes = [
 export type Archetype = typeof archetypes[number];
 
 export const locationCategories: Record<string, string[]> = {
+  "Malaysia": [
+    "Kuala Lumpur",
+    "KUALA LUMPUR",
+    "PETALING JAYA",
+    "Petaling Jaya",
+    "CYBERJAYA",
+    "Subang Jaya",
+    "SHAH ALAM",
+    "SERDANG",
+    "SERI KEMBANGAN",
+    "BAYAN LEPAS",
+  ],
   "United States": ["San Francisco", "New York", "Austin", "Boston", "Seattle", "Los Angeles", "Miami", "Denver"],
   "Germany": ["Berlin", "Munich", "Hamburg"],
   "United Kingdom": ["London", "Cambridge", "Manchester"],

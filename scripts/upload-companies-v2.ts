@@ -135,7 +135,7 @@ function mapRowToCompany(row: Record<string, string>): Record<string, unknown> {
     'Technology': row['Technology'] || '',
     'Sub-Technology': toFieldValue(subTechnology),
     'One-line company description': row['One-line company description'] || '',
-    'Description': row['Description'] || row['Company Overview'] || '',
+    'Description': row['Company Overview'] || row['Description'] || '',
     'Founded Year': foundedYear,
     'Headquarters City': row['Headquarters City'] || '',
     'Headquarters State': row['Headquarters State'] || '',
@@ -166,6 +166,26 @@ function mapRowToCompany(row: Record<string, string>): Record<string, unknown> {
     'Client Focus': clientFocus,
     'Impact Goals': impactGoals,
     'Social Media': row['Social Media'] || '',
+
+    // Enriched fields
+    'Latitude': parseFloat(row['Latitude']) || undefined,
+    'Longitude': parseFloat(row['Longitude']) || undefined,
+    'Total Funds Raised': parseFloat(row['Total Funds Raised']) || 0,
+    'Latest Valuation': parseFloat(row['Latest Valuation']) || 0,
+    'Latest Funding Round Type': row['Latest Funding Round Type'] || '',
+    'Last Funding Date': row['Last Funding Date'] || '',
+    'Investor Count': parseInt(row['Investor Count']) || 0,
+    'Open for Funding': row['Open for Funding'] === 'Yes',
+    'Open for Investment': row['Open for Investment'] === 'Yes',
+    'Exit Type': row['Exit Type'] || '',
+    'Ownership': row['Ownership'] || '',
+    'Number of Founders': parseInt(row['Number of Founders']) || 0,
+    'Number of Management Team': parseInt(row['Number of Management Team']) || 0,
+    'Number of Key Persons': parseInt(row['Number of Key Persons']) || 0,
+    'Verified Status': row['Verified Status'] || '',
+    'Stealth Status': row['Stealth Status'] || '',
+    'Primary Industry': row['Primary Industry'] || '',
+    'Primary Technology': row['Primary Technology'] || '',
   };
 }
 

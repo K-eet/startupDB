@@ -17,6 +17,7 @@ export interface Company {
   'Founder Titles': string | string[];
   'Website URL': string;
   Slug: string;
+  'Primary Technology'?: string;
   // Array fields (semicolon-separated in CSV)
   'Other Industries'?: string[];
   'Other Technologies'?: string[];

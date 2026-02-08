@@ -157,15 +157,18 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Technology</span>
                 <div className="flex flex-wrap gap-1">
-                  <Badge
-                    variant="secondary"
-                    className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                  >
-                    {company['Technology']}
-                  </Badge>
-                  {toArray(company['Sub-Technology']).map((subTech, index) => (
+                  {company['Technology'].split(';').map((tech, index) => (
                     <Badge
                       key={index}
+                      variant="secondary"
+                      className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                    >
+                      {tech.trim()}
+                    </Badge>
+                  ))}
+                  {toArray(company['Sub-Technology']).map((subTech, index) => (
+                    <Badge
+                      key={`sub-${index}`}
                       variant="secondary"
                       className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
                     >

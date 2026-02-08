@@ -151,9 +151,10 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
           }
         }
 
-        // Technology filter
+        // Technology filter (matches against Primary Technology field)
         if (!options.skipTechnology && Object.keys(technologyFilters).length > 0) {
-          const filterEntry = technologyFilters[startup['Technology']];
+          const primaryTech = startup['Primary Technology'] || '';
+          const filterEntry = technologyFilters[primaryTech];
           if (!filterEntry) return false;
 
           const selectedChildren = filterEntry.children;
@@ -220,10 +221,10 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
           : dataForLocationCounts;
     const fieldMap = {
       industry: 'Industry',
-      technology: 'Technology',
+      technology: 'Primary Technology',
       country: 'Headquarters Country',
     } as const;
-    return countData.filter((s) => s[fieldMap[field]] === parent).length;
+    return countData.filter((s) => (s[fieldMap[field]] ?? '') === parent).length;
   };
 
   const getChildCount = (
@@ -240,7 +241,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
           : dataForLocationCounts;
     const parentFieldMap = {
       industry: 'Industry',
-      technology: 'Technology',
+      technology: 'Primary Technology',
       country: 'Headquarters Country',
     } as const;
     const childFieldMap = {
@@ -248,7 +249,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
       subTechnology: 'Sub-Technology',
       city: 'Headquarters City',
     } as const;
-    return countData.filter((s) => s[parentFieldMap[parentField]] === parent && s[childFieldMap[childField]] === child).length;
+    return countData.filter((s) => (s[parentFieldMap[parentField]] ?? '') === parent && s[childFieldMap[childField]] === child).length;
   };
 
   const getArchetypeCount = (archetype: string) => {
