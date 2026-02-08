@@ -177,7 +177,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
           const selectedChildren = filterEntry.children;
           if (selectedChildren.length > 0) {
-            if (!selectedChildren.includes(startup['Headquarters City'])) return false;
+            if (!selectedChildren.includes(startup['Headquarters State'])) return false;
           } else if (!filterEntry.selected) {
             return false;
           }
@@ -229,7 +229,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
   const getChildCount = (
     parentField: 'industry' | 'technology' | 'country',
-    childField: 'subIndustry' | 'subTechnology' | 'city',
+    childField: 'subIndustry' | 'subTechnology' | 'state',
     parent: string,
     child: string
   ) => {
@@ -247,7 +247,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     const childFieldMap = {
       subIndustry: 'Sub-Industry',
       subTechnology: 'Sub-Technology',
-      city: 'Headquarters City',
+      state: 'Headquarters State',
     } as const;
     return countData.filter((s) => (s[parentFieldMap[parentField]] ?? '') === parent && s[childFieldMap[childField]] === child).length;
   };
@@ -263,7 +263,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     filters: HierarchicalFilter,
     setFilters: React.Dispatch<React.SetStateAction<HierarchicalFilter>>,
     parentField: 'industry' | 'technology' | 'country',
-    childField: 'subIndustry' | 'subTechnology' | 'city',
+    childField: 'subIndustry' | 'subTechnology' | 'state',
     colorClass: string,
     hideZeroCounts: boolean = false
   ) => (
@@ -591,7 +591,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
             locationFilters,
             setLocationFilters,
             'country',
-            'city',
+            'state',
             'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400',
             true // hideZeroCounts - Location filter is dynamic
           )}

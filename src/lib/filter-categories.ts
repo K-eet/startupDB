@@ -113,32 +113,21 @@ export const archetypes = [
 export type Archetype = typeof archetypes[number];
 
 export const locationCategories: Record<string, string[]> = {
-  "Malaysia": [
-    "Kuala Lumpur",
-    "KUALA LUMPUR",
-    "PETALING JAYA",
-    "Petaling Jaya",
-    "CYBERJAYA",
-    "Subang Jaya",
-    "SHAH ALAM",
-    "SERDANG",
-    "SERI KEMBANGAN",
-    "BAYAN LEPAS",
-  ],
-  "United States": ["San Francisco", "New York", "Austin", "Boston", "Seattle", "Los Angeles", "Miami", "Denver"],
-  "Germany": ["Berlin", "Munich", "Hamburg"],
-  "United Kingdom": ["London", "Cambridge", "Manchester"],
+  "Malaysia": ["Kuala Lumpur", "Penang", "Selangor"],
+  "United States": ["California", "New York", "Texas", "Massachusetts", "Washington"],
+  "Germany": ["Berlin", "Bavaria", "Hamburg"],
+  "United Kingdom": ["England", "Scotland"],
   "Israel": ["Tel Aviv", "Jerusalem"],
   "Singapore": ["Singapore"],
-  "Canada": ["Toronto", "Vancouver"],
-  "Netherlands": ["Amsterdam", "Rotterdam"],
-  "France": ["Paris", "Lyon"],
+  "Canada": ["Ontario", "British Columbia"],
+  "Netherlands": ["North Holland", "South Holland"],
+  "France": ["Île-de-France"],
   "Japan": ["Tokyo", "Osaka"],
-  "Australia": ["Sydney", "Melbourne"],
-  "India": ["Bangalore", "Mumbai"],
-  "Sweden": ["Stockholm", "Gothenburg"],
+  "Australia": ["New South Wales", "Victoria"],
+  "India": ["Karnataka", "Maharashtra"],
+  "Sweden": ["Stockholm"],
   "South Korea": ["Seoul"],
-  "Ireland": ["Dublin"],
+  "Ireland": ["Leinster"],
 };
 
 // Helper to get all industries
