@@ -151,7 +151,7 @@ function mapRowToCompany(row: Record<string, string>): CompanyProfile {
     status: row['Status'] || 'Operational',
     exitType: row['Exit Type'] || undefined,
     growthStage: row['Growth Stage'] || undefined,
-    companySize: row['Company Size'] || undefined,
+    companySize: (row['Company Size'] || undefined) as CompanyProfile['companySize'],
     companyType: row['Company Type'] || undefined,
 
     // Funding

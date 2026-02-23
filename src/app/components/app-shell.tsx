@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/auth-context';
 import { ThemeToggle } from '@/app/components/theme-toggle';
 import {
   DropdownMenu,
@@ -9,10 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Menu, Building, Rocket, Briefcase, CalendarDays, User } from 'lucide-react';
+import { Menu, Building, Rocket, Briefcase, CalendarDays, User, LogOut, Shield } from 'lucide-react';
 
 export function AppShell({
   children,
@@ -29,6 +32,7 @@ export function AppShell({
 }) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
 
   const handleMenuClick = (tab: string) => {
     if (tab === 'startups' || tab === 'vcs') {
@@ -52,11 +56,28 @@ export function AppShell({
     }
   };
 
-  const handleLoginClick = () => {
-    toast({
-      title: 'Coming Soon!',
-      description: 'The "Sign Up/Login" feature is not yet implemented.',
-    });
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      toast({
+        title: 'Sign-in failed',
+        description: 'Could not sign in with Google. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch {
+      toast({
+        title: 'Sign-out failed',
+        description: 'Could not sign out. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const navItems = [
@@ -91,17 +112,57 @@ export function AppShell({
                   {item.label}
                 </button>
               ))}
+              {isAdmin && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="px-3 py-1 text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+                >
+                  Admin
+                </button>
+              )}
             </nav>
           </div>
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {/* User icon for login (desktop and mobile) */}
-            <Button variant="ghost" size="icon" onClick={handleLoginClick}>
-              <User />
-              <span className="sr-only">Sign up or log in</span>
-            </Button>
+            {/* User auth button */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? 'User'} />
+                      <AvatarFallback>
+                        {user.displayName?.charAt(0)?.toUpperCase() ?? 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel className="font-normal">
+                    <p className="text-sm font-medium">{user.displayName}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => router.push('/admin')}>
+                      <Shield />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={handleSignIn}>
+                <User />
+                <span className="sr-only">Sign in</span>
+              </Button>
+            )}
 
             {/* Mobile hamburger menu */}
             <DropdownMenu>
@@ -129,6 +190,15 @@ export function AppShell({
                   <Briefcase />
                   Jobs
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/admin')}>
+                      <Shield />
+                      Admin
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -43,6 +43,7 @@ From Fortune 500 companies to high-growth startups, organizations trust DataPuls
         title: 'VP of Engineering',
       },
     ],
+    status: 'Operational',
     lastUpdated: '2026-01-15',
   },
   {
@@ -82,6 +83,7 @@ Trusted by engineering teams at leading technology companies, CodeForge has help
         linkedIn: 'https://linkedin.com/in/priyasharma',
       },
     ],
+    status: 'Operational',
     lastUpdated: '2026-01-10',
   },
   {
@@ -125,6 +127,7 @@ With over 5 million customers across 15 countries, NeoBank is proving that finan
         linkedIn: 'https://linkedin.com/in/rajpatel',
       },
     ],
+    status: 'Operational',
     lastUpdated: '2026-01-12',
   },
 ];

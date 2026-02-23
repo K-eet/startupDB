@@ -159,7 +159,9 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
           const selectedChildren = filterEntry.children;
           if (selectedChildren.length > 0) {
-            if (!selectedChildren.includes(startup['Sub-Technology'])) return false;
+            const subTech = startup['Sub-Technology'];
+            const subTechValues = Array.isArray(subTech) ? subTech : [subTech];
+            if (!subTechValues.some((v) => selectedChildren.includes(v))) return false;
           } else if (!filterEntry.selected) {
             return false;
           }

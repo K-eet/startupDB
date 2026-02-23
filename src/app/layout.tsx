@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/app/components/theme-provider';
+import { AuthProvider } from '@/contexts/auth-context';
 import { SponsorTicker } from '@/app/components/sponsor-ticker';
 
 export const metadata: Metadata = {
@@ -29,9 +30,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
-          <SponsorTicker />
+          <AuthProvider>
+            {children}
+            <Toaster />
+            <SponsorTicker />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
