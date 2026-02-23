@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const decoded = await adminAuth.verifyIdToken(idToken);
     const email = decoded.email?.toLowerCase();
 
-    if (!email) {
+    if (!email || !decoded.email_verified) {
       return NextResponse.json({ isAdmin: false });
     }
 
