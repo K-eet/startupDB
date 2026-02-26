@@ -27,7 +27,7 @@ export function AppShell({
   children: React.ReactNode;
   pageName: string;
   description?: React.ReactNode;
-  activeTab: 'startups' | 'vcs' | 'events';
+  activeTab: 'startups' | 'vcs' | 'events' | 'jobs';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
 }) {
   const router = useRouter();
@@ -48,6 +48,8 @@ export function AppShell({
       }
     } else if (tab === 'Events') {
       router.push('/events');
+    } else if (tab === 'Jobs') {
+      router.push('/jobs');
     } else {
       toast({
         title: 'Coming Soon!',
@@ -104,7 +106,9 @@ export function AppShell({
                   onClick={() => handleMenuClick(item.tab)}
                   className={`px-3 py-1 text-sm font-medium transition-colors hover:text-primary ${
                     (item.tab === 'startups' && activeTab === 'startups') ||
-                    (item.tab === 'vcs' && activeTab === 'vcs')
+                    (item.tab === 'vcs' && activeTab === 'vcs') ||
+                    (item.tab === 'Events' && activeTab === 'events') ||
+                    (item.tab === 'Jobs' && activeTab === 'jobs')
                       ? 'text-primary'
                       : 'text-muted-foreground'
                   }`}
