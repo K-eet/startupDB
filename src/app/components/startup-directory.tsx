@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronUp, Building2, X, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Building2, X, SlidersHorizontal, Loader2, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import React from 'react';
 import Link from 'next/link';
 import {
@@ -45,6 +46,8 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
   const [technologyFilters, setTechnologyFilters] = React.useState<HierarchicalFilter>({});
   const [archetypeFilters, setArchetypeFilters] = React.useState<string[]>([]);
   const [locationFilters, setLocationFilters] = React.useState<HierarchicalFilter>({});
+
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   // Mobile filter panel visibility (collapsed by default on mobile)
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
@@ -193,8 +196,14 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
   // Filter logic - full filtered data for display
   const filteredData = React.useMemo(() => {
-    return applyFilters(data);
-  }, [data, applyFilters]);
+    const filtered = applyFilters(data);
+    if (!searchQuery.trim()) return filtered;
+    const q = searchQuery.toLowerCase();
+    return filtered.filter((c) =>
+      (c['Company Name'] || '').toLowerCase().includes(q) ||
+      (c['Description'] || '').toLowerCase().includes(q)
+    );
+  }, [data, applyFilters, searchQuery]);
 
   // Filtered datasets for dynamic counts (excluding one filter category each)
   const dataForIndustryCounts = React.useMemo(() => {
@@ -571,8 +580,8 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
           <Separator className="my-3" />
 
-          {/* Technology Filter */}
-          {renderHierarchicalFilter(
+          {/* Technology Filter — hidden for now, may re-enable later */}
+          {/* {renderHierarchicalFilter(
             'Technology',
             'technology',
             technologyCategories,
@@ -581,9 +590,9 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
             'technology',
             'subTechnology',
             'bg-yellow-400 dark:bg-yellow-500'
-          )}
+          )} */}
 
-          <Separator className="my-3" />
+          {/* <Separator className="my-3" /> */}
 
           {/* Location Filter */}
           {renderHierarchicalFilter(
@@ -595,7 +604,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
             'country',
             'state',
             'bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400',
-            true // hideZeroCounts - Location filter is dynamic
+            false // show all states including zero-count Malaysian states
           )}
           </div>
         </div>
@@ -603,7 +612,15 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
       {/* Main Content - Company Grid */}
       <main className="flex-1">
-        {searchBar && <div className="mb-6">{searchBar}</div>}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search companies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
 
         {/* Active Filter Chips */}
         {hasActiveFilters && (

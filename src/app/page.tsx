@@ -1,8 +1,24 @@
 'use client';
 
 import * as React from 'react';
-import StartupDirectory from '@/app/components/startup-directory';
-import VCDirectory from '@/app/components/vc-directory';
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+
+const StartupDirectory = dynamic(() => import('@/app/components/startup-directory'), {
+  loading: () => (
+    <div className="flex items-center justify-center py-24">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  ),
+});
+
+const VCDirectory = dynamic(() => import('@/app/components/vc-directory'), {
+  loading: () => (
+    <div className="flex items-center justify-center py-24">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  ),
+});
 import { initialVCFirms } from '@/lib/initial-data';
 import { useAllCompanies } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';

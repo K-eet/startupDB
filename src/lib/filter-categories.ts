@@ -113,7 +113,24 @@ export const archetypes = [
 export type Archetype = typeof archetypes[number];
 
 export const locationCategories: Record<string, string[]> = {
-  "Malaysia": ["Kuala Lumpur", "Penang", "Selangor"],
+  "Malaysia": [
+    "Johor",
+    "Kedah",
+    "Kelantan",
+    "Kuala Lumpur",
+    "Labuan",
+    "Melaka",
+    "Negeri Sembilan",
+    "Pahang",
+    "Penang",
+    "Perak",
+    "Perlis",
+    "Putrajaya",
+    "Sabah",
+    "Sarawak",
+    "Selangor",
+    "Terengganu",
+  ],
   "United States": ["California", "New York", "Texas", "Massachusetts", "Washington"],
   "Germany": ["Berlin", "Bavaria", "Hamburg"],
   "United Kingdom": ["England", "Scotland"],

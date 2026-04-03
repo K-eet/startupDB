@@ -5,7 +5,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email_verified
-        && request.auth.token.email in ['keetm.lee@gmail.com'];
+        && request.auth.token.email in ['keetm.lee@gmail.com', 'arvind@myspringboard.asia'];
     }
 
     // Companies collection - public read, admin write

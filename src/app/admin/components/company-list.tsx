@@ -21,12 +21,22 @@ interface CompanyListProps {
   loading: boolean;
 }
 
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
 export function CompanyList({ companies, loading }: CompanyListProps) {
   const [search, setSearch] = useState('');
+  const [letterFilter, setLetterFilter] = useState<string | null>(null);
 
-  const filtered = companies.filter((c) =>
-    c['Company Name']?.toLowerCase().includes(search.toLowerCase())
+  const lettersWithData = new Set(
+    companies.map((c) => (c['Company Name']?.[0] ?? '').toUpperCase()).filter((l) => /[A-Z]/.test(l))
   );
+
+  const filtered = companies.filter((c) => {
+    const name = c['Company Name'] ?? '';
+    const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+    const matchesLetter = !letterFilter || name[0]?.toUpperCase() === letterFilter;
+    return matchesSearch && matchesLetter;
+  });
 
   if (loading) {
     return (
@@ -49,6 +59,39 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
         />
       </div>
 
+      {/* A-Z letter index */}
+      <div className="flex flex-wrap gap-1">
+        <button
+          onClick={() => setLetterFilter(null)}
+          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+            letterFilter === null
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          All
+        </button>
+        {LETTERS.map((letter) => {
+          const hasData = lettersWithData.has(letter);
+          return (
+            <button
+              key={letter}
+              onClick={() => setLetterFilter(letterFilter === letter ? null : letter)}
+              disabled={!hasData}
+              className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                letterFilter === letter
+                  ? 'bg-primary text-primary-foreground'
+                  : hasData
+                  ? 'text-foreground hover:bg-muted'
+                  : 'text-muted-foreground/40 cursor-default'
+              }`}
+            >
+              {letter}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -64,7 +107,7 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  {search ? 'No companies match your search.' : 'No companies found.'}
+                  {search || letterFilter ? 'No companies match your search.' : 'No companies found.'}
                 </TableCell>
               </TableRow>
             ) : (
@@ -93,7 +136,7 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
         </Table>
       </div>
 
-      {search && (
+      {(search || letterFilter) && (
         <p className="text-sm text-muted-foreground">
           Showing {filtered.length} of {companies.length} companies
         </p>

@@ -85,8 +85,8 @@ export function AppShell({
   const navItems = [
     { label: 'Companies', tab: 'startups' },
     { label: 'VCs', tab: 'vcs' },
-    { label: 'Events', tab: 'Events' },
-    { label: 'Jobs', tab: 'Jobs' },
+    { label: 'Events', tab: 'Events', comingSoon: true },
+    { label: 'Jobs', tab: 'Jobs', comingSoon: true },
   ];
 
   return (
@@ -103,17 +103,21 @@ export function AppShell({
               {navItems.map((item) => (
                 <button
                   key={item.tab}
-                  onClick={() => handleMenuClick(item.tab)}
-                  className={`px-3 py-1 text-sm font-medium transition-colors hover:text-primary ${
-                    (item.tab === 'startups' && activeTab === 'startups') ||
-                    (item.tab === 'vcs' && activeTab === 'vcs') ||
-                    (item.tab === 'Events' && activeTab === 'events') ||
-                    (item.tab === 'Jobs' && activeTab === 'jobs')
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                  onClick={item.comingSoon ? undefined : () => handleMenuClick(item.tab)}
+                  disabled={item.comingSoon}
+                  className={`relative px-3 py-1 text-sm font-medium transition-colors ${
+                    item.comingSoon
+                      ? 'text-muted-foreground/40 cursor-not-allowed'
+                      : (item.tab === 'startups' && activeTab === 'startups') ||
+                        (item.tab === 'vcs' && activeTab === 'vcs')
+                      ? 'text-primary hover:text-primary'
+                      : 'text-muted-foreground hover:text-primary'
                   }`}
                 >
                   {item.label}
+                  {item.comingSoon && (
+                    <span className="ml-1 text-[10px] font-normal text-muted-foreground/60">soon</span>
+                  )}
                 </button>
               ))}
               {isAdmin && (
@@ -186,13 +190,15 @@ export function AppShell({
                   VCs
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
+                <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
                   <CalendarDays />
                   Events
+                  <span className="ml-auto text-[10px] text-muted-foreground">soon</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleMenuClick('Jobs')}>
+                <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
                   <Briefcase />
                   Jobs
+                  <span className="ml-auto text-[10px] text-muted-foreground">soon</span>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <>
@@ -213,9 +219,14 @@ export function AppShell({
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
             {activeTab === 'startups' && (
-              <Button variant="default" size="sm">
-                Add a Company
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="default" size="sm" asChild>
+                  <a href="#">Join our Community</a>
+                </Button>
+                <Button variant="default" size="sm">
+                  Add a Company
+                </Button>
+              </div>
             )}
           </div>
           {description && (

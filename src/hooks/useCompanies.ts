@@ -147,36 +147,45 @@ export function useCompany(slug: string): UseCompanyResult {
   return { company, loading, error };
 }
 
+// Module-level cache — survives re-renders and navigation within the session
+let companiesCache: Company[] | null = null;
+let companiesFetchPromise: Promise<Company[]> | null = null;
+
 // Hook to fetch all companies (for directory with client-side filtering)
 export function useAllCompanies(): UseCompaniesResult {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState<Company[]>(companiesCache ?? []);
+  const [loading, setLoading] = useState(companiesCache === null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const q = query(
-          collection(db, COLLECTION),
-          orderBy('Company Name')
-        );
-
-        const snapshot = await getDocs(q);
-        const docs = snapshot.docs.map((doc) => doc.data() as Company);
-
-        setCompanies(docs);
-      } catch (err) {
-        console.error('Error fetching all companies:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch companies');
-      } finally {
-        setLoading(false);
-      }
+    if (companiesCache !== null) {
+      setCompanies(companiesCache);
+      setLoading(false);
+      return;
     }
 
-    fetchAll();
+    if (!companiesFetchPromise) {
+      companiesFetchPromise = getDocs(
+        query(collection(db, COLLECTION), orderBy('Company Name'))
+      ).then((snapshot) => snapshot.docs.map((doc) => doc.data() as Company));
+    }
+
+    setLoading(true);
+    setError(null);
+
+    companiesFetchPromise
+      .then((docs) => {
+        companiesCache = docs;
+        setCompanies(docs);
+      })
+      .catch((err) => {
+        console.error('Error fetching all companies:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch companies');
+        companiesFetchPromise = null; // allow retry on error
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return {

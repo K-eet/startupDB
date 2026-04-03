@@ -16,8 +16,20 @@ import {
   ArrowLeft,
   ExternalLink,
   User,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 
 interface CompanyProfilePageProps {
   company: Company;
@@ -26,6 +38,32 @@ interface CompanyProfilePageProps {
 export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
   const founders = parseFounders(company['Founder Names'], company['Founder Titles']);
   const companyAge = calculateCompanyAge(company['Founded Year']);
+  const { user, signInWithGoogle, signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch {
+      toast({
+        title: 'Sign-in failed',
+        description: 'Could not sign in with Google. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch {
+      toast({
+        title: 'Sign-out failed',
+        description: 'Could not sign out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -61,10 +99,36 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Sign in</span>
-              </Button>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? 'User'} />
+                        <AvatarFallback>
+                          {user.displayName?.charAt(0)?.toUpperCase() ?? 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel className="font-normal">
+                      <p className="text-sm font-medium">{user.displayName}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="ghost" size="icon" onClick={handleSignIn}>
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Sign in</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
