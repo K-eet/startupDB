@@ -4,15 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { Company } from '@/types/company';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Pencil, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { industryCategories, archetypes } from '@/lib/filter-categories';
@@ -39,38 +30,30 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
     companies.map((c) => (c['Company Name']?.[0] ?? '').toUpperCase()).filter((l) => /[A-Z]/.test(l))
   );
 
-  // Base filter: search + letter only (used for computing pane counts)
   const baseFiltered = companies.filter((c) => {
     const name = c['Company Name'] ?? '';
-    const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchesLetter = !letterFilter || name[0]?.toUpperCase() === letterFilter;
-    return matchesSearch && matchesLetter;
+    return (
+      name.toLowerCase().includes(search.toLowerCase()) &&
+      (!letterFilter || name[0]?.toUpperCase() === letterFilter)
+    );
   });
 
-  // After industry selection (used for sub-industry counts)
   const afterIndustry = selectedIndustry
     ? baseFiltered.filter((c) => c['Industry'] === selectedIndustry)
     : baseFiltered;
 
-  // After sub-industry selection (used for company type counts)
   const afterSubIndustry = selectedSubIndustry
     ? afterIndustry.filter((c) => c['Sub-Industry'] === selectedSubIndustry)
     : afterIndustry;
 
-  // Final filtered list
-  const filtered = (selectedCompanyType
+  const filtered = selectedCompanyType
     ? afterSubIndustry.filter((c) => c['Company Type'] === selectedCompanyType)
-    : afterSubIndustry
-  );
+    : afterSubIndustry;
 
   const subIndustries = selectedIndustry ? (industryCategories[selectedIndustry] ?? []) : [];
 
   const handleIndustryClick = (industry: string) => {
-    if (selectedIndustry === industry) {
-      setSelectedIndustry(null);
-    } else {
-      setSelectedIndustry(industry);
-    }
+    setSelectedIndustry(selectedIndustry === industry ? null : industry);
     setSelectedSubIndustry(null);
     setSelectedCompanyType(null);
   };
@@ -88,14 +71,30 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
     return (
       <div className="space-y-3">
         <Skeleton className="h-10 w-full max-w-sm" />
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-[600px] w-full" />
       </div>
     );
   }
 
+  const paneHeader = (
+    label: string,
+    isOpen: boolean,
+    onToggle: () => void
+  ) => (
+    <button
+      onClick={onToggle}
+      className="flex items-center gap-1.5 px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors w-full text-left flex-shrink-0"
+    >
+      {isOpen
+        ? <ChevronDown className="h-3 w-3 flex-shrink-0" />
+        : <ChevronRight className="h-3 w-3 flex-shrink-0" />}
+      {isOpen && <span className="truncate">{label}</span>}
+    </button>
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,19 +140,13 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
       </div>
 
       {/* Column browser */}
-      <div className="flex gap-0 border border-border rounded-md overflow-hidden">
+      <div className="flex border border-border rounded-md overflow-hidden h-[calc(100vh-280px)] min-h-[400px]">
 
         {/* Industry pane */}
-        <div className={`flex flex-col border-r border-border ${industryOpen ? 'w-56' : 'w-10'} flex-shrink-0 transition-all`}>
-          <button
-            onClick={() => setIndustryOpen(!industryOpen)}
-            className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 w-full text-left"
-          >
-            {industryOpen ? <ChevronDown className="h-3 w-3 flex-shrink-0" /> : <ChevronRight className="h-3 w-3 flex-shrink-0" />}
-            {industryOpen && <span>Industry</span>}
-          </button>
+        <div className={`flex flex-col border-r border-border flex-shrink-0 ${industryOpen ? 'w-48' : 'w-9'}`}>
+          {paneHeader('Industry', industryOpen, () => setIndustryOpen(!industryOpen))}
           {industryOpen && (
-            <div className="overflow-y-auto h-64">
+            <div className="overflow-y-auto flex-1">
               {Object.keys(industryCategories).map((industry) => {
                 const count = baseFiltered.filter((c) => c['Industry'] === industry).length;
                 const isSelected = selectedIndustry === industry;
@@ -163,8 +156,8 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
                     onClick={() => handleIndustryClick(industry)}
                     className={`w-full flex items-center justify-between px-3 py-1.5 text-sm text-left transition-colors border-l-2 ${
                       isSelected
-                        ? 'bg-primary/10 border-l-primary text-foreground font-medium'
-                        : 'border-l-transparent hover:bg-muted text-foreground'
+                        ? 'bg-primary/10 border-l-primary font-medium'
+                        : 'border-l-transparent hover:bg-muted'
                     } ${count === 0 ? 'opacity-40' : ''}`}
                   >
                     <span className="truncate">{industry}</span>
@@ -177,18 +170,14 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
         </div>
 
         {/* Sub-Industry pane */}
-        <div className={`flex flex-col border-r border-border ${subIndustryOpen ? 'w-64' : 'w-10'} flex-shrink-0 transition-all`}>
-          <button
-            onClick={() => setSubIndustryOpen(!subIndustryOpen)}
-            className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 w-full text-left"
-          >
-            {subIndustryOpen ? <ChevronDown className="h-3 w-3 flex-shrink-0" /> : <ChevronRight className="h-3 w-3 flex-shrink-0" />}
-            {subIndustryOpen && (
-              <span>{selectedIndustry ? `${selectedIndustry}` : 'Sub-Industry'}</span>
-            )}
-          </button>
+        <div className={`flex flex-col border-r border-border flex-shrink-0 ${subIndustryOpen ? 'w-56' : 'w-9'}`}>
+          {paneHeader(
+            selectedIndustry ?? 'Sub-Industry',
+            subIndustryOpen,
+            () => setSubIndustryOpen(!subIndustryOpen)
+          )}
           {subIndustryOpen && (
-            <div className="overflow-y-auto h-64">
+            <div className="overflow-y-auto flex-1">
               {!selectedIndustry ? (
                 <p className="px-3 py-3 text-xs text-muted-foreground italic">Select an industry</p>
               ) : subIndustries.length === 0 ? (
@@ -203,8 +192,8 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
                       onClick={() => handleSubIndustryClick(sub)}
                       className={`w-full flex items-center justify-between px-3 py-1.5 text-sm text-left transition-colors border-l-2 ${
                         isSelected
-                          ? 'bg-primary/10 border-l-primary text-foreground font-medium'
-                          : 'border-l-transparent hover:bg-muted text-foreground'
+                          ? 'bg-primary/10 border-l-primary font-medium'
+                          : 'border-l-transparent hover:bg-muted'
                       } ${count === 0 ? 'opacity-40' : ''}`}
                     >
                       <span className="truncate">{sub}</span>
@@ -218,16 +207,10 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
         </div>
 
         {/* Company Type pane */}
-        <div className={`flex flex-col ${companyTypeOpen ? 'w-64' : 'w-10'} flex-shrink-0 transition-all`}>
-          <button
-            onClick={() => setCompanyTypeOpen(!companyTypeOpen)}
-            className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 w-full text-left"
-          >
-            {companyTypeOpen ? <ChevronDown className="h-3 w-3 flex-shrink-0" /> : <ChevronRight className="h-3 w-3 flex-shrink-0" />}
-            {companyTypeOpen && <span>Company Type</span>}
-          </button>
+        <div className={`flex flex-col border-r border-border flex-shrink-0 ${companyTypeOpen ? 'w-56' : 'w-9'}`}>
+          {paneHeader('Company Type', companyTypeOpen, () => setCompanyTypeOpen(!companyTypeOpen))}
           {companyTypeOpen && (
-            <div className="overflow-y-auto h-64">
+            <div className="overflow-y-auto flex-1">
               {archetypes.map((type) => {
                 const count = afterSubIndustry.filter((c) => c['Company Type'] === type).length;
                 const isSelected = selectedCompanyType === type;
@@ -237,8 +220,8 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
                     onClick={() => handleCompanyTypeClick(type)}
                     className={`w-full flex items-center justify-between px-3 py-1.5 text-sm text-left transition-colors border-l-2 ${
                       isSelected
-                        ? 'bg-primary/10 border-l-primary text-foreground font-medium'
-                        : 'border-l-transparent hover:bg-muted text-foreground'
+                        ? 'bg-primary/10 border-l-primary font-medium'
+                        : 'border-l-transparent hover:bg-muted'
                     } ${count === 0 ? 'opacity-40' : ''}`}
                   >
                     <span className="truncate">{type}</span>
@@ -250,76 +233,35 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
           )}
         </div>
 
-        {/* Spacer so the browser fills remaining width */}
-        <div className="flex-1 bg-muted/20" />
-      </div>
-
-      {/* Active filter summary */}
-      {(selectedIndustry || selectedSubIndustry || selectedCompanyType) && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Filtered by:</span>
-          {selectedIndustry && <span className="bg-muted px-2 py-0.5 rounded">{selectedIndustry}</span>}
-          {selectedSubIndustry && <span className="text-muted-foreground">›</span>}
-          {selectedSubIndustry && <span className="bg-muted px-2 py-0.5 rounded">{selectedSubIndustry}</span>}
-          {selectedCompanyType && <span className="text-muted-foreground">›</span>}
-          {selectedCompanyType && <span className="bg-muted px-2 py-0.5 rounded">{selectedCompanyType}</span>}
-          <button
-            onClick={() => { setSelectedIndustry(null); setSelectedSubIndustry(null); setSelectedCompanyType(null); }}
-            className="ml-1 hover:text-foreground underline"
-          >
-            Clear
-          </button>
-        </div>
-      )}
-
-      {/* Company table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Company Name</TableHead>
-              <TableHead className="hidden sm:table-cell">Industry</TableHead>
-              <TableHead className="hidden md:table-cell">Company Type</TableHead>
-              <TableHead className="hidden lg:table-cell">Location</TableHead>
-              <TableHead className="w-[80px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        {/* Companies pane — fills remaining space */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border flex-shrink-0">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Companies
+            </span>
+            <span className="text-xs text-muted-foreground">{filtered.length}</span>
+          </div>
+          <div className="overflow-y-auto flex-1">
             {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  No companies match your filters.
-                </TableCell>
-              </TableRow>
+              <p className="px-3 py-3 text-xs text-muted-foreground italic">No companies match.</p>
             ) : (
-              filtered.map((company) => (
-                <TableRow key={company.Slug}>
-                  <TableCell className="font-medium">{company['Company Name']}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{company['Industry']}</TableCell>
-                  <TableCell className="hidden md:table-cell">{company['Company Type']}</TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {[company['Headquarters State'], company['Headquarters Country']]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/companies/${company.Slug}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit {company['Company Name']}</span>
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              filtered
+                .slice()
+                .sort((a, b) => (a['Company Name'] ?? '').localeCompare(b['Company Name'] ?? ''))
+                .map((company) => (
+                  <Link
+                    key={company.Slug}
+                    href={`/admin/companies/${company.Slug}/edit`}
+                    className="flex items-center justify-between px-3 py-1.5 text-sm hover:bg-muted transition-colors group"
+                  >
+                    <span className="truncate">{company['Company Name']}</span>
+                    <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 ml-2" />
+                  </Link>
+                ))
             )}
-          </TableBody>
-        </Table>
+          </div>
+        </div>
       </div>
-
-      <p className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {companies.length} companies
-      </p>
     </div>
   );
 }
