@@ -194,33 +194,36 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     [industryFilters, technologyFilters, archetypeFilters, locationFilters]
   );
 
-  // Filter logic - full filtered data for display
-  const filteredData = React.useMemo(() => {
-    const filtered = applyFilters(data);
-    if (!searchQuery.trim()) return filtered;
+  const applySearch = React.useCallback((sourceData: Company[]) => {
+    if (!searchQuery.trim()) return sourceData;
     const q = searchQuery.toLowerCase();
-    return filtered.filter((c) =>
+    return sourceData.filter((c) =>
       (c['Company Name'] || '').toLowerCase().includes(q) ||
       (c['Description'] || '').toLowerCase().includes(q)
     );
-  }, [data, applyFilters, searchQuery]);
+  }, [searchQuery]);
+
+  // Filter logic - full filtered data for display
+  const filteredData = React.useMemo(() => {
+    return applySearch(applyFilters(data));
+  }, [data, applyFilters, applySearch]);
 
   // Filtered datasets for dynamic counts (excluding one filter category each)
   const dataForIndustryCounts = React.useMemo(() => {
-    return applyFilters(data, { skipIndustry: true });
-  }, [data, applyFilters]);
+    return applySearch(applyFilters(data, { skipIndustry: true }));
+  }, [data, applyFilters, applySearch]);
 
   const dataForTechnologyCounts = React.useMemo(() => {
-    return applyFilters(data, { skipTechnology: true });
-  }, [data, applyFilters]);
+    return applySearch(applyFilters(data, { skipTechnology: true }));
+  }, [data, applyFilters, applySearch]);
 
   const dataForArchetypeCounts = React.useMemo(() => {
-    return applyFilters(data, { skipArchetype: true });
-  }, [data, applyFilters]);
+    return applySearch(applyFilters(data, { skipArchetype: true }));
+  }, [data, applyFilters, applySearch]);
 
   const dataForLocationCounts = React.useMemo(() => {
-    return applyFilters(data, { skipLocation: true });
-  }, [data, applyFilters]);
+    return applySearch(applyFilters(data, { skipLocation: true }));
+  }, [data, applyFilters, applySearch]);
 
   // Count helpers - now using filtered data for dynamic counts
   const getParentCount = (field: 'industry' | 'technology' | 'country', parent: string) => {

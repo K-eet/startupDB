@@ -44,7 +44,6 @@ export const industryCategories: Record<string, string[]> = {
   ],
   "Healthcare": [
     "Biotechnology",
-    "Consumer Health & Wellness",
     "Diagnostics",
     "Drug Discovery & Delivery",
     "Healthcare IT",
@@ -105,9 +104,11 @@ export const technologyCategories: Record<string, string[]> = {
 
 export const archetypes = [
   "Product-Led Startup / Scaleup",
+  "Startup",
   "Solution Provider / Systems Integrator",
   "Custom Software Developer",
-  "ICT Partner & Reseller",
+  "ICT Reseller",
+  "Retail & Commerce",
 ] as const;
 
 export type Archetype = typeof archetypes[number];
@@ -131,20 +132,6 @@ export const locationCategories: Record<string, string[]> = {
     "Selangor",
     "Terengganu",
   ],
-  "United States": ["California", "New York", "Texas", "Massachusetts", "Washington"],
-  "Germany": ["Berlin", "Bavaria", "Hamburg"],
-  "United Kingdom": ["England", "Scotland"],
-  "Israel": ["Tel Aviv", "Jerusalem"],
-  "Singapore": ["Singapore"],
-  "Canada": ["Ontario", "British Columbia"],
-  "Netherlands": ["North Holland", "South Holland"],
-  "France": ["Île-de-France"],
-  "Japan": ["Tokyo", "Osaka"],
-  "Australia": ["New South Wales", "Victoria"],
-  "India": ["Karnataka", "Maharashtra"],
-  "Sweden": ["Stockholm"],
-  "South Korea": ["Seoul"],
-  "Ireland": ["Leinster"],
 };
 
 // Helper to get all industries
