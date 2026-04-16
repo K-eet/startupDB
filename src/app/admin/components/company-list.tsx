@@ -26,17 +26,24 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
   const [subIndustryOpen, setSubIndustryOpen] = useState(true);
   const [companyTypeOpen, setCompanyTypeOpen] = useState(true);
 
+  // All filters except letter — used for A-Z bar counts
+  const withoutLetter = companies.filter((c) => {
+    const name = c['Company Name'] ?? '';
+    if (!name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (selectedIndustry && c['Industry'] !== selectedIndustry) return false;
+    if (selectedSubIndustry && c['Sub-Industry'] !== selectedSubIndustry) return false;
+    if (selectedCompanyType && c['Company Type'] !== selectedCompanyType) return false;
+    return true;
+  });
+
   const lettersWithData = new Set(
-    companies.map((c) => (c['Company Name']?.[0] ?? '').toUpperCase()).filter((l) => /[A-Z]/.test(l))
+    withoutLetter.map((c) => (c['Company Name']?.[0] ?? '').toUpperCase()).filter((l) => /[A-Z]/.test(l))
   );
 
-  const baseFiltered = companies.filter((c) => {
-    const name = c['Company Name'] ?? '';
-    return (
-      name.toLowerCase().includes(search.toLowerCase()) &&
-      (!letterFilter || name[0]?.toUpperCase() === letterFilter)
-    );
-  });
+  // Base filter: search + letter (used for pane counts)
+  const baseFiltered = withoutLetter.filter((c) =>
+    !letterFilter || (c['Company Name']?.[0] ?? '').toUpperCase() === letterFilter
+  );
 
   const afterIndustry = selectedIndustry
     ? baseFiltered.filter((c) => c['Industry'] === selectedIndustry)
