@@ -107,7 +107,7 @@ export const archetypes = [
   "Startup",
   "Solution Provider / Systems Integrator",
   "Custom Software Developer",
-  "ICT Reseller",
+  "ICT Partner & Reseller",
   "Retail & Commerce",
 ] as const;
 

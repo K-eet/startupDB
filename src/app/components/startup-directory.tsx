@@ -198,8 +198,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     if (!searchQuery.trim()) return sourceData;
     const q = searchQuery.toLowerCase();
     return sourceData.filter((c) =>
-      (c['Company Name'] || '').toLowerCase().includes(q) ||
-      (c['Description'] || '').toLowerCase().includes(q)
+      (c['Company Name'] || '').toLowerCase().includes(q)
     );
   }, [searchQuery]);
 
