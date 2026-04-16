@@ -104,11 +104,9 @@ export const technologyCategories: Record<string, string[]> = {
 
 export const archetypes = [
   "Product-Led Startup/Scaleup",
-  "Startup",
   "Solution Provider / Systems Integrator",
   "Custom Software Developer",
   "ICT Partner & Reseller",
-  "Retail & Commerce",
 ] as const;
 
 export type Archetype = typeof archetypes[number];
