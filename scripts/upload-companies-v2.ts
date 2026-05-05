@@ -186,6 +186,11 @@ function mapRowToCompany(row: Record<string, string>): Record<string, unknown> {
     'Stealth Status': row['Stealth Status'] || '',
     'Primary Industry': row['Primary Industry'] || '',
     'Primary Technology': row['Primary Technology'] || '',
+
+    // AI classification metadata
+    'AI Confidence': row['AI Confidence'] || '',
+    'AI Reasoning': row['AI Reasoning'] || '',
+    'AI Model': row['AI Model'] || '',
   };
 }
 

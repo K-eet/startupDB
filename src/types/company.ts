@@ -26,6 +26,9 @@ export interface Company {
   'Client Focus'?: string[];
   'Impact Goals'?: string[];
   'Management Team'?: string[];
+  'AI Confidence'?: string;
+  'AI Reasoning'?: string;
+  'AI Model'?: string;
 }
 
 // Helper to normalize a field that might be a string or array
