@@ -15,6 +15,7 @@ import {
   archetypes,
   locationCategories,
 } from '@/lib/filter-categories';
+import { normalizeCompanyName } from '@/lib/utils';
 
 type StartupDirectoryProps = {
   data: Company[];
@@ -758,7 +759,7 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
 
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors">
-                      {startup['Company Name'] || 'Unnamed Company'}
+                      {normalizeCompanyName(startup['Company Name'] || 'Unnamed Company')}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                       {startup['One-line company description'] || ''}

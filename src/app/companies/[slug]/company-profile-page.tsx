@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Company } from '@/types/company';
 import { calculateCompanyAge, parseFounders, toArray } from '@/types/company';
+import { normalizeCompanyName } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/app/components/theme-toggle';
@@ -17,6 +19,8 @@ import {
   ExternalLink,
   User,
   LogOut,
+  Menu,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
@@ -38,7 +42,8 @@ interface CompanyProfilePageProps {
 export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
   const founders = parseFounders(company['Founder Names'], company['Founder Titles']);
   const companyAge = calculateCompanyAge(company['Founded Year']);
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const router = useRouter();
+  const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
   const { toast } = useToast();
 
   const handleSignIn = async () => {
@@ -67,34 +72,32 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
-          <div className="flex items-center justify-between h-14">
+      <div className="container mx-auto p-4 md:p-6 lg:p-8 max-w-7xl">
+        {/* Header — matches AppShell */}
+        <header className="mb-8">
+          <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <Link href="/" className="text-xl font-bold tracking-tight hover:text-primary transition-colors">
+              <Link href="/" className="text-2xl font-bold tracking-tight">
                 StartupDB
               </Link>
-              <span className="text-muted-foreground hidden sm:inline">|</span>
-              <nav className="hidden sm:flex items-center gap-1">
-                <Link
-                  href="/"
-                  className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Companies
-                </Link>
-                <Link
-                  href="/"
-                  className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  VCs
-                </Link>
-                <Link
-                  href="/events"
-                  className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Events
-                </Link>
+              <nav className="hidden md:flex items-center gap-1">
+                <span className="text-muted-foreground mx-2">|</span>
+                <Link href="/" className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Companies</Link>
+                <Link href="/" className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">VCs</Link>
+                <span className="px-3 py-1 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+                  Events<span className="ml-1 text-[10px] font-normal text-muted-foreground/60">soon</span>
+                </span>
+                <span className="px-3 py-1 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+                  Jobs<span className="ml-1 text-[10px] font-normal text-muted-foreground/60">soon</span>
+                </span>
+                {isAdmin && (
+                  <button
+                    onClick={() => router.push('/admin')}
+                    className="px-3 py-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Admin
+                  </button>
+                )}
               </nav>
             </div>
             <div className="flex items-center gap-2">
@@ -117,6 +120,12 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => router.push('/admin')}>
+                        <Shield />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut />
                       Sign Out
@@ -129,12 +138,39 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
                   <span className="sr-only">Sign in</span>
                 </Button>
               )}
+              {/* Mobile hamburger */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => router.push('/')}>Companies</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/')}>VCs</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
+                    Events<span className="ml-auto text-[10px] text-muted-foreground">soon</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
+                    Jobs<span className="ml-auto text-[10px] text-muted-foreground">soon</span>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/admin')}>
+                        <Shield />
+                        Admin
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl py-6">
         {/* Back Link and Claim Button */}
         <div className="flex items-center justify-between mb-6">
           <Link
@@ -162,7 +198,7 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             {/* Company Name & Short Description */}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
-                {company['Company Name'] || 'Unnamed Company'}
+                {normalizeCompanyName(company['Company Name'] || 'Unnamed Company')}
               </h1>
               <p className="text-lg text-muted-foreground mb-4">
                 {company['One-line company description'] || ''}

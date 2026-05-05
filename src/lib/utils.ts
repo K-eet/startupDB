@@ -7,6 +7,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function normalizeCompanyName(name: string): string {
+  return name.replace(/\bFormerly\b/g, 'formerly');
+}
+
 export const groupEventsByDate = (events: EventType[]) => {
   const now = new Date();
   const startOfThisWeek = startOfWeek(now, { weekStartsOn: 1 });
