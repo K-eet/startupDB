@@ -16,6 +16,7 @@ import {
   locationCategories,
 } from '@/lib/filter-categories';
 import { normalizeCompanyName } from '@/lib/utils';
+import { DirectoryDashboard } from './directory-dashboard';
 
 type StartupDirectoryProps = {
   data: Company[];
@@ -731,6 +732,9 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
             </button>
           </div>
         )}
+
+        {/* Dashboard — stat cards + sector grid */}
+        {!hasActiveFilters && !searchQuery && <DirectoryDashboard data={data} onSectorClick={(industry) => handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, industry)} />}
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
