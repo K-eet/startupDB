@@ -229,6 +229,16 @@ export function AppShell({
               </div>
             )}
           </div>
+          {activeTab === 'startups' && (
+            <div className="flex md:hidden items-center gap-2 mt-3">
+              <Button variant="default" size="sm" asChild>
+                <a href="#">Join our Community</a>
+              </Button>
+              <Button variant="default" size="sm">
+                Add a Company
+              </Button>
+            </div>
+          )}
           {description && (
             <div className="text-muted-foreground mt-2">
               {description}
