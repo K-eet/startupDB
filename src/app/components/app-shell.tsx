@@ -219,7 +219,7 @@ export function AppShell({
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
             {activeTab === 'startups' && (
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <Button variant="default" size="sm" asChild>
                   <a href="#">Join our Community</a>
                 </Button>
