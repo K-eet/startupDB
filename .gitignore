@@ -54,6 +54,9 @@ CLAUDE.md
 # data files (CSV uploads, etc.)
 /data/
 
+# scripts (local admin utilities, not for public repo)
+/scripts/
+
 # google cloud sdk (installed locally, not part of repo)
 google-cloud-sdk/
 google-cloud-cli-*.tar.gz

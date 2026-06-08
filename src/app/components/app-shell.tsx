@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { ThemeToggle } from '@/app/components/theme-toggle';
@@ -23,12 +24,14 @@ export function AppShell({
   description,
   activeTab,
   onTabChange,
+  hideHeaderActionsOnDesktop = false,
 }: {
   children: React.ReactNode;
   pageName: string;
   description?: React.ReactNode;
   activeTab: 'startups' | 'vcs' | 'events' | 'jobs';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
+  hideHeaderActionsOnDesktop?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -85,7 +88,7 @@ export function AppShell({
   const navItems = [
     { label: 'Companies', tab: 'startups' },
     { label: 'VCs', tab: 'vcs' },
-    { label: 'Events', tab: 'Events', comingSoon: true },
+    { label: 'Events', tab: 'Events' },
     { label: 'Jobs', tab: 'Jobs', comingSoon: true },
   ];
 
@@ -109,7 +112,8 @@ export function AppShell({
                     item.comingSoon
                       ? 'text-muted-foreground/40 cursor-not-allowed'
                       : (item.tab === 'startups' && activeTab === 'startups') ||
-                        (item.tab === 'vcs' && activeTab === 'vcs')
+                        (item.tab === 'vcs' && activeTab === 'vcs') ||
+                        (item.tab === 'Events' && activeTab === 'events')
                       ? 'text-primary hover:text-primary'
                       : 'text-muted-foreground hover:text-primary'
                   }`}
@@ -190,10 +194,9 @@ export function AppShell({
                   VCs
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
+                <DropdownMenuItem onClick={() => handleMenuClick('Events')}>
                   <CalendarDays />
                   Events
-                  <span className="ml-auto text-[10px] text-muted-foreground">soon</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled className="opacity-40 cursor-not-allowed">
                   <Briefcase />
@@ -219,9 +222,9 @@ export function AppShell({
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
             {activeTab === 'startups' && (
-              <div className="hidden md:flex items-center gap-2">
+              <div className={`hidden md:flex items-center gap-2 ${hideHeaderActionsOnDesktop ? 'lg:hidden' : ''}`}>
                 <Button variant="default" size="sm" asChild>
-                  <a href="#">Join our Community</a>
+                  <Link href="/community">Join our Community</Link>
                 </Button>
                 <Button variant="default" size="sm">
                   Add a Company
@@ -232,7 +235,7 @@ export function AppShell({
           {activeTab === 'startups' && (
             <div className="flex md:hidden items-center gap-2 mt-3">
               <Button variant="default" size="sm" asChild>
-                <a href="#">Join our Community</a>
+                <Link href="/community">Join our Community</Link>
               </Button>
               <Button variant="default" size="sm">
                 Add a Company

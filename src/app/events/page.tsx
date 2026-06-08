@@ -2,13 +2,18 @@
 import * as React from 'react';
 import { AppShell } from '@/app/components/app-shell';
 import { EventCard } from '@/app/events/components/event-card';
+import { EventsCalendar } from '@/app/events/components/events-calendar';
 import { initialEvents, type EventType } from '@/lib/events-data';
 import { groupEventsByDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { parseISO } from 'date-fns';
+
+// Demo offsets (in days from today): 2 days, 1 week + 2 days, 1 month + 3 days.
+const DEMO_OFFSETS = [2, 9, 33];
 
 export default function EventsPage() {
-  const [groupedEvents, setGroupedEvents] = React.useState<Record<string, EventType[]>>({});
+  const [dynamicEvents, setDynamicEvents] = React.useState<EventType[]>([]);
 
   React.useEffect(() => {
     // By generating future dates and grouping on the client, we avoid hydration mismatch.
@@ -18,14 +23,16 @@ export default function EventsPage() {
       return date.toISOString().split('T')[0];
     };
 
-    const dynamicEvents: EventType[] = initialEvents.map((event, index) => ({
-      ...event,
-      date: getFutureDate(index * 2 + 1),
-    }));
-
-    setGroupedEvents(groupEventsByDate(dynamicEvents));
+    setDynamicEvents(
+      initialEvents.map((event, index) => ({
+        ...event,
+        date: getFutureDate(DEMO_OFFSETS[index % DEMO_OFFSETS.length]),
+      }))
+    );
   }, []);
 
+  const groupedEvents = React.useMemo(() => groupEventsByDate(dynamicEvents), [dynamicEvents]);
+  const eventDates = React.useMemo(() => dynamicEvents.map((event) => parseISO(event.date)), [dynamicEvents]);
   const totalEvents = Object.values(groupedEvents).flat().length;
 
   return (
@@ -37,7 +44,9 @@ export default function EventsPage() {
     >
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}
-        <aside className="w-full lg:w-80 flex-shrink-0">
+        <aside className="w-full lg:w-80 flex-shrink-0 space-y-4">
+          <EventsCalendar eventDates={eventDates} />
+
           <div className="border border-border bg-card p-4">
             <div className="flex items-center gap-2 mb-4">
               <SlidersHorizontal className="h-4 w-4" />
