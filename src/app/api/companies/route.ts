@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { gzipSync } from 'zlib';
+import { NextRequest, NextResponse } from 'next/server';
 import { FieldPath } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Company } from '@/types/company';
@@ -26,7 +27,7 @@ const DIRECTORY_FIELDS = [
   'Founded Year',
 ];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const snapshot = await adminDb
       .collection('companies')
@@ -36,12 +37,23 @@ export async function GET() {
 
     const companies = snapshot.docs.map((doc) => doc.data() as Company);
 
-    return NextResponse.json(companies, {
-      headers: {
-        // CDN caches for 5 minutes, serves stale while revalidating for a day
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400',
-      },
-    });
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      // CDN caches for 5 minutes, serves stale while revalidating for a day
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400',
+      Vary: 'Accept-Encoding',
+    };
+
+    // App Hosting's Next.js adapter doesn't compress responses, so gzip here
+    // (~1.3 MB JSON -> ~170 KB on the wire)
+    const body = JSON.stringify(companies);
+    if (request.headers.get('accept-encoding')?.includes('gzip')) {
+      return new NextResponse(gzipSync(body) as unknown as BodyInit, {
+        headers: { ...headers, 'Content-Encoding': 'gzip' },
+      });
+    }
+
+    return new NextResponse(body, { headers });
   } catch (error) {
     console.error('Failed to fetch companies:', error);
     return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });
