@@ -151,7 +151,9 @@ export function useCompany(slug: string): UseCompanyResult {
 let companiesCache: Company[] | null = null;
 let companiesFetchPromise: Promise<Company[]> | null = null;
 
-// Hook to fetch all companies (for directory with client-side filtering)
+// Hook to fetch all companies (for directory with client-side filtering).
+// Fetches slim documents from /api/companies (CDN-cached, directory fields only)
+// instead of pulling full documents from Firestore — full docs were ~14 MB.
 export function useAllCompanies(): UseCompaniesResult {
   const [companies, setCompanies] = useState<Company[]>(companiesCache ?? []);
   const [loading, setLoading] = useState(companiesCache === null);
@@ -165,9 +167,12 @@ export function useAllCompanies(): UseCompaniesResult {
     }
 
     if (!companiesFetchPromise) {
-      companiesFetchPromise = getDocs(
-        query(collection(db, COLLECTION), orderBy('Company Name'))
-      ).then((snapshot) => snapshot.docs.map((doc) => doc.data() as Company));
+      companiesFetchPromise = fetch('/api/companies').then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch companies (HTTP ${res.status})`);
+        }
+        return (await res.json()) as Company[];
+      });
     }
 
     setLoading(true);

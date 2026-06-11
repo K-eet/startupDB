@@ -2,6 +2,7 @@
 
 import type { Company } from '@/types/company';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +31,10 @@ type HierarchicalFilter = {
     children: string[];
   };
 };
+
+// Number of company cards rendered at once — rendering all 2,400+ at once
+// makes the initial paint and every keystroke in search take seconds
+const RESULTS_PAGE_SIZE = 24;
 
 export default function StartupDirectory({ data, loading = false, searchBar }: StartupDirectoryProps) {
   // Filter section open/close state
@@ -208,6 +213,18 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
   const filteredData = React.useMemo(() => {
     return applySearch(applyFilters(data));
   }, [data, applyFilters, applySearch]);
+
+  // Incremental rendering — show RESULTS_PAGE_SIZE cards, grow via "Load more"
+  const [visibleCount, setVisibleCount] = React.useState(RESULTS_PAGE_SIZE);
+
+  React.useEffect(() => {
+    setVisibleCount(RESULTS_PAGE_SIZE);
+  }, [industryFilters, technologyFilters, archetypeFilters, locationFilters, searchQuery]);
+
+  const visibleData = React.useMemo(
+    () => filteredData.slice(0, visibleCount),
+    [filteredData, visibleCount]
+  );
 
   // Filtered datasets for dynamic counts (excluding one filter category each)
   const dataForIndustryCounts = React.useMemo(() => {
@@ -748,8 +765,9 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredData.length > 0 ? (
+          <>
           <div className="grid grid-cols-1 gap-4">
-            {filteredData.map((startup) => (
+            {visibleData.map((startup) => (
               <Link
                 key={startup['StartupDB_ID'] || startup['Slug'] || startup['Company Name']}
                 href={`/companies/${startup['Slug'] || ''}`}
@@ -789,6 +807,17 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
               </Link>
             ))}
           </div>
+          {filteredData.length > visibleCount && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => setVisibleCount((count) => count + RESULTS_PAGE_SIZE)}
+              >
+                Load more ({(filteredData.length - visibleCount).toLocaleString()} remaining)
+              </Button>
+            </div>
+          )}
+          </>
         ) : (
           <div className="border border-border bg-card p-12 text-center">
             <p className="text-muted-foreground">No startups found matching your filters.</p>
