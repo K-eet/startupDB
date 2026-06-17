@@ -11,6 +11,32 @@ export function normalizeCompanyName(name: string): string {
   return name.replace(/\bFormerly\b/g, 'formerly');
 }
 
+/** Maximum length accepted from any free-text search box. */
+export const MAX_SEARCH_LENGTH = 100;
+
+/**
+ * Normalize free-text search input before it reaches any filtering — or, per
+ * IMPLEMENTATION_PLAN Phase 7.2, an external search service (Algolia/Typesense).
+ * Today's directory search is purely client-side substring matching with no
+ * query/regex/HTML sink, so this is defense-in-depth and input hygiene rather
+ * than a fix for an existing injection hole:
+ *   - coerces any value to a string (runtime guard against non-string callers)
+ *   - strips ASCII/Unicode control characters (C0/C1, including NUL)
+ *   - caps length to bound work and any future outbound query payload
+ */
+export function sanitizeSearchInput(raw: unknown): string {
+  const str = typeof raw === 'string' ? raw : String(raw ?? '');
+  let out = '';
+  for (const ch of str) {
+    const code = ch.codePointAt(0) ?? 0;
+    // Skip C0 (0x00–0x1F) and C1 (0x7F–0x9F) control characters.
+    if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) continue;
+    out += ch;
+    if (out.length >= MAX_SEARCH_LENGTH) break;
+  }
+  return out;
+}
+
 export const groupEventsByDate = (events: EventType[]) => {
   const now = new Date();
   const startOfThisWeek = startOfWeek(now, { weekStartsOn: 1 });

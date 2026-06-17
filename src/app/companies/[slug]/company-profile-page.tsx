@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { RequestModal } from '@/app/components/request-modal';
 import type { Company } from '@/types/company';
 import { calculateCompanyAge, parseFounders, toArray } from '@/types/company';
 import { normalizeCompanyName } from '@/lib/utils';
@@ -42,6 +44,7 @@ interface CompanyProfilePageProps {
 export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
   const founders = parseFounders(company['Founder Names'], company['Founder Titles']);
   const companyAge = calculateCompanyAge(company['Founded Year']);
+  const [claimOpen, setClaimOpen] = useState(false);
   const router = useRouter();
   const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
   const { toast } = useToast();
@@ -180,10 +183,22 @@ export function CompanyProfilePage({ company }: CompanyProfilePageProps) {
             <ArrowLeft className="h-4 w-4" />
             Back to directory
           </Link>
-          <Button variant="default" size="sm">
+          <Button variant="default" size="sm" onClick={() => setClaimOpen(true)}>
             Claim this Company
           </Button>
         </div>
+
+        <RequestModal
+          mode="claim"
+          open={claimOpen}
+          onOpenChange={setClaimOpen}
+          claimTarget={{
+            slug: company['Slug'],
+            name: company['Company Name'],
+            industry: company['Industry'],
+            city: company['Headquarters City'],
+          }}
+        />
 
         {/* ============================================ */}
         {/* 1. HEADER - Identity & Immediate Context */}

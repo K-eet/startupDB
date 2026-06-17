@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { industryCategories, archetypes } from '@/lib/filter-categories';
+import { sanitizeSearchInput, MAX_SEARCH_LENGTH } from '@/lib/utils';
 
 interface CompanyListProps {
   companies: Company[];
@@ -108,7 +109,8 @@ export function CompanyList({ companies, loading }: CompanyListProps) {
         <Input
           placeholder="Search companies..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => setSearch(sanitizeSearchInput(e.target.value))}
+          maxLength={MAX_SEARCH_LENGTH}
           className="pl-9"
         />
       </div>

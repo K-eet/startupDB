@@ -17,6 +17,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Menu, Building, Rocket, Briefcase, CalendarDays, User, LogOut, Shield } from 'lucide-react';
+import { RequestModal } from '@/app/components/request-modal';
 
 export function AppShell({
   children,
@@ -25,6 +26,7 @@ export function AppShell({
   activeTab,
   onTabChange,
   hideHeaderActionsOnDesktop = false,
+  hideTitle = false,
 }: {
   children: React.ReactNode;
   pageName: string;
@@ -32,10 +34,12 @@ export function AppShell({
   activeTab: 'startups' | 'vcs' | 'events' | 'jobs';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
   hideHeaderActionsOnDesktop?: boolean;
+  hideTitle?: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
+  const [addCompanyOpen, setAddCompanyOpen] = React.useState(false);
 
   const handleMenuClick = (tab: string) => {
     if (tab === 'startups' || tab === 'vcs') {
@@ -218,6 +222,7 @@ export function AppShell({
         </div>
 
         {/* Page title and description */}
+        {!hideTitle && (
         <div className="mt-6">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight">{pageName}</h1>
@@ -226,7 +231,7 @@ export function AppShell({
                 <Button variant="default" size="sm" asChild>
                   <Link href="/community">Join our Community</Link>
                 </Button>
-                <Button variant="default" size="sm">
+                <Button variant="default" size="sm" onClick={() => setAddCompanyOpen(true)}>
                   Add a Company
                 </Button>
               </div>
@@ -237,7 +242,7 @@ export function AppShell({
               <Button variant="default" size="sm" asChild>
                 <Link href="/community">Join our Community</Link>
               </Button>
-              <Button variant="default" size="sm">
+              <Button variant="default" size="sm" onClick={() => setAddCompanyOpen(true)}>
                 Add a Company
               </Button>
             </div>
@@ -248,9 +253,12 @@ export function AppShell({
             </div>
           )}
         </div>
+        )}
       </header>
 
       {children}
+
+      <RequestModal mode="add" open={addCompanyOpen} onOpenChange={setAddCompanyOpen} />
     </main>
   );
 }

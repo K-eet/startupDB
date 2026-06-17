@@ -16,7 +16,7 @@ import {
   archetypes,
   locationCategories,
 } from '@/lib/filter-categories';
-import { normalizeCompanyName } from '@/lib/utils';
+import { normalizeCompanyName, sanitizeSearchInput, MAX_SEARCH_LENGTH } from '@/lib/utils';
 import { DirectoryDashboard } from './directory-dashboard';
 
 type StartupDirectoryProps = {
@@ -201,13 +201,19 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     [industryFilters, technologyFilters, archetypeFilters, locationFilters]
   );
 
+  // Precompute each company's lowercased name once per dataset, so search
+  // doesn't re-lowercase all ~2,462 names on every keystroke across every pass.
+  const nameIndex = React.useMemo(() => {
+    const m = new Map<Company, string>();
+    for (const c of data) m.set(c, (c['Company Name'] || '').toLowerCase());
+    return m;
+  }, [data]);
+
   const applySearch = React.useCallback((sourceData: Company[]) => {
     if (!searchQuery.trim()) return sourceData;
     const q = searchQuery.toLowerCase();
-    return sourceData.filter((c) =>
-      (c['Company Name'] || '').toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
+    return sourceData.filter((c) => (nameIndex.get(c) ?? '').includes(q));
+  }, [searchQuery, nameIndex]);
 
   // Filter logic - full filtered data for display
   const filteredData = React.useMemo(() => {
@@ -243,50 +249,62 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
     return applySearch(applyFilters(data, { skipLocation: true }));
   }, [data, applyFilters, applySearch]);
 
-  // Count helpers - now using filtered data for dynamic counts
-  const getParentCount = (field: 'industry' | 'technology' | 'country', parent: string) => {
-    const countData =
-      field === 'industry'
-        ? dataForIndustryCounts
-        : field === 'technology'
-          ? dataForTechnologyCounts
-          : dataForLocationCounts;
-    const fieldMap = {
-      industry: 'Industry',
-      technology: 'Primary Technology',
-      country: 'Headquarters Country',
-    } as const;
-    return countData.filter((s) => (s[fieldMap[field]] ?? '') === parent).length;
+  // Precompute count frequency maps once per dataset (O(n)), then look up in O(1).
+  // Previously each getParentCount/getChildCount/getArchetypeCount did a full
+  // .filter() scan, called once per filter option on every render — so a single
+  // keystroke triggered tens of full passes over all ~2,462 companies.
+  const CHILD_SEP = '\u0000';
+  const buildCounts = (rows: Company[], parentKey: keyof Company, childKey: keyof Company) => {
+    const parent = new Map<string, number>();
+    const child = new Map<string, number>();
+    for (const r of rows) {
+      const p = (r[parentKey] ?? '') as string;
+      parent.set(p, (parent.get(p) ?? 0) + 1);
+      const key = p + CHILD_SEP + String(r[childKey]);
+      child.set(key, (child.get(key) ?? 0) + 1);
+    }
+    return { parent, child };
   };
+
+  const industryCounts = React.useMemo(
+    () => buildCounts(dataForIndustryCounts, 'Industry', 'Sub-Industry'),
+    [dataForIndustryCounts]
+  );
+  const technologyCounts = React.useMemo(
+    () => buildCounts(dataForTechnologyCounts, 'Primary Technology', 'Sub-Technology'),
+    [dataForTechnologyCounts]
+  );
+  const locationCounts = React.useMemo(
+    () => buildCounts(dataForLocationCounts, 'Headquarters Country', 'Headquarters State'),
+    [dataForLocationCounts]
+  );
+  const archetypeCounts = React.useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of dataForArchetypeCounts) {
+      const t = s['Company Type'];
+      m.set(t, (m.get(t) ?? 0) + 1);
+    }
+    return m;
+  }, [dataForArchetypeCounts]);
+
+  const countsFor = (field: 'industry' | 'technology' | 'country') =>
+    field === 'industry'
+      ? industryCounts
+      : field === 'technology'
+        ? technologyCounts
+        : locationCounts;
+
+  const getParentCount = (field: 'industry' | 'technology' | 'country', parent: string) =>
+    countsFor(field).parent.get(parent) ?? 0;
 
   const getChildCount = (
     parentField: 'industry' | 'technology' | 'country',
-    childField: 'subIndustry' | 'subTechnology' | 'state',
+    _childField: 'subIndustry' | 'subTechnology' | 'state',
     parent: string,
     child: string
-  ) => {
-    const countData =
-      parentField === 'industry'
-        ? dataForIndustryCounts
-        : parentField === 'technology'
-          ? dataForTechnologyCounts
-          : dataForLocationCounts;
-    const parentFieldMap = {
-      industry: 'Industry',
-      technology: 'Primary Technology',
-      country: 'Headquarters Country',
-    } as const;
-    const childFieldMap = {
-      subIndustry: 'Sub-Industry',
-      subTechnology: 'Sub-Technology',
-      state: 'Headquarters State',
-    } as const;
-    return countData.filter((s) => (s[parentFieldMap[parentField]] ?? '') === parent && s[childFieldMap[childField]] === child).length;
-  };
+  ) => countsFor(parentField).child.get(parent + CHILD_SEP + child) ?? 0;
 
-  const getArchetypeCount = (archetype: string) => {
-    return dataForArchetypeCounts.filter((s) => s['Company Type'] === archetype).length;
-  };
+  const getArchetypeCount = (archetype: string) => archetypeCounts.get(archetype) ?? 0;
 
   const renderHierarchicalFilter = (
     title: string,
@@ -638,7 +656,8 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
           <Input
             placeholder="Search companies..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(sanitizeSearchInput(e.target.value))}
+            maxLength={MAX_SEARCH_LENGTH}
             className="pl-9"
           />
         </div>
