@@ -1,6 +1,6 @@
 'use client';
 
-import { useAllCompanies } from '@/hooks/useCompanies';
+import { useAllCompanies } from '@/hooks/useAllCompanies';
 import { CompanyList } from './components/company-list';
 
 export default function AdminPage() {

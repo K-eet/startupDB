@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
+  getFirestore,
   collection,
   query,
   orderBy,
@@ -12,8 +13,10 @@ import {
   DocumentSnapshot,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { app } from '@/lib/firebase';
 import type { Company } from '@/types/company';
+
+const db = getFirestore(app);
 
 const COLLECTION = 'companies';
 const PAGE_SIZE = 20;
@@ -145,60 +148,4 @@ export function useCompany(slug: string): UseCompanyResult {
   }, [slug]);
 
   return { company, loading, error };
-}
-
-// Module-level cache — survives re-renders and navigation within the session
-let companiesCache: Company[] | null = null;
-let companiesFetchPromise: Promise<Company[]> | null = null;
-
-// Hook to fetch all companies (for directory with client-side filtering).
-// Fetches slim documents from /api/companies (CDN-cached, directory fields only)
-// instead of pulling full documents from Firestore — full docs were ~14 MB.
-export function useAllCompanies(): UseCompaniesResult {
-  const [companies, setCompanies] = useState<Company[]>(companiesCache ?? []);
-  const [loading, setLoading] = useState(companiesCache === null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (companiesCache !== null) {
-      setCompanies(companiesCache);
-      setLoading(false);
-      return;
-    }
-
-    if (!companiesFetchPromise) {
-      companiesFetchPromise = fetch('/api/companies').then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch companies (HTTP ${res.status})`);
-        }
-        return (await res.json()) as Company[];
-      });
-    }
-
-    setLoading(true);
-    setError(null);
-
-    companiesFetchPromise
-      .then((docs) => {
-        companiesCache = docs;
-        setCompanies(docs);
-      })
-      .catch((err) => {
-        console.error('Error fetching all companies:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch companies');
-        companiesFetchPromise = null; // allow retry on error
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  return {
-    companies,
-    loading,
-    error,
-    hasMore: false,
-    loadMore: async () => {},
-    total: companies.length,
-  };
 }

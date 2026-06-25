@@ -20,7 +20,7 @@ const VCDirectory = dynamic(() => import('@/app/components/vc-directory'), {
   ),
 });
 import { initialVCFirms } from '@/lib/initial-data';
-import { useAllCompanies } from '@/hooks/useCompanies';
+import { useAllCompanies } from '@/hooks/useAllCompanies';
 import { useToast } from '@/hooks/use-toast';
 import { AppShell } from '@/app/components/app-shell';
 import Link from 'next/link';

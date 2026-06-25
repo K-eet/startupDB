@@ -1,6 +1,8 @@
-import { collection, query, where, limit, getDocs, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { getFirestore, collection, query, where, limit, getDocs, updateDoc } from 'firebase/firestore';
+import { app } from './firebase';
 import type { Company } from '@/types/company';
+
+const db = getFirestore(app);
 
 /**
  * Update specific fields of a company using legacy field names.

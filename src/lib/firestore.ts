@@ -13,9 +13,12 @@ import {
   DocumentData,
   QueryConstraint,
   Timestamp,
+  getFirestore,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { app } from './firebase';
 import type { CompanyProfile } from './types';
+
+const db = getFirestore(app);
 
 // Collection names
 export const COLLECTIONS = {

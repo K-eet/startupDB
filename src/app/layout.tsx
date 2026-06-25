@@ -4,8 +4,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/app/components/theme-provider';
 import { AuthProvider } from '@/contexts/auth-context';
 import { SponsorTicker } from '@/app/components/sponsor-ticker';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'StartupDB',
   description: "Discover Malaysia's premier startups, VCs, and events.",
 };

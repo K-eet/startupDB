@@ -1,44 +1,54 @@
-'use client';
-
-import { useParams } from 'next/navigation';
-import { useCompany } from '@/hooks/useCompanies';
+import { cache } from 'react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { adminDb } from '@/lib/firebase-admin';
+import type { Company } from '@/types/company';
 import { CompanyProfilePage } from './company-profile-page';
-import { Loader2 } from 'lucide-react';
 
-export default function CompanyPage() {
-  const params = useParams();
-  const slug = typeof params.slug === 'string' ? params.slug : '';
-  const { company, loading, error } = useCompany(slug);
+// Server-fetch the company so the page ships full HTML + metadata to crawlers
+// instead of a client-only shell. cache() dedupes the read between
+// generateMetadata and the render. Dynamic — the Admin SDK needs runtime creds.
+const getCompany = cache(async (slug: string): Promise<Company | null> => {
+  const snapshot = await adminDb
+    .collection('companies')
+    .where('Slug', '==', slug)
+    .limit(1)
+    .get();
+  if (snapshot.empty) return null;
+  // Round-trip to plain JSON: the raw doc may hold Firestore Timestamps/refs,
+  // which can't cross the server→client boundary into CompanyProfilePage.
+  return JSON.parse(JSON.stringify(snapshot.docs[0].data())) as Company;
+});
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const company = await getCompany(slug);
+  if (!company) return { title: 'Company Not Found — StartupDB' };
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Error</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  const name = company['Company Name'] || 'Company';
+  const description =
+    company['One-line company description'] || `${name} on StartupDB.`;
+  const path = `/companies/${slug}`;
 
-  if (!company) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Company Not Found</h1>
-          <p className="text-muted-foreground">The company you&apos;re looking for doesn&apos;t exist.</p>
-        </div>
-      </div>
-    );
-  }
+  return {
+    title: `${name} — StartupDB`,
+    description,
+    alternates: { canonical: path },
+    openGraph: { title: name, description, url: path, type: 'website' },
+  };
+}
 
+export default async function CompanyPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const company = await getCompany(slug);
+  if (!company) notFound();
   return <CompanyProfilePage company={company} />;
 }
