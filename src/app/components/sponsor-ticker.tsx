@@ -17,6 +17,9 @@ function SponsorLogo({ name, logo }: { name: string; logo: string }) {
   return (
     <div className="flex items-center gap-3 px-6 shrink-0">
       <div className="w-8 h-8 flex-shrink-0 bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element -- hidden placeholder
+            component (rule #10) with fake logo paths + onError fallback; not worth
+            an Image loader until real sponsors ship. */}
         <img
           src={logo}
           alt={`${name} logo`}
