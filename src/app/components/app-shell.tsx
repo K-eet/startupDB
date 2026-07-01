@@ -3,7 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth, preloadAuth } from '@/contexts/auth-context';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ThemeToggle } from '@/app/components/theme-toggle';
 import {
   DropdownMenu,
@@ -38,7 +39,7 @@ export function AppShell({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
+  const { user, isAdmin, loading: authLoading, signInWithGoogle, signOut } = useAuth();
   const [addCompanyOpen, setAddCompanyOpen] = React.useState(false);
 
   const handleMenuClick = (tab: string) => {
@@ -142,8 +143,11 @@ export function AppShell({
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {/* User auth button */}
-            {user ? (
+            {/* User auth button. While auth resolves, show a neutral placeholder
+                so logged-in users don't flash the sign-in icon before their avatar. */}
+            {authLoading ? (
+              <Skeleton className="h-8 w-8 rounded-full" />
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
@@ -174,7 +178,13 @@ export function AppShell({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="icon" onClick={handleSignIn}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignIn}
+                onMouseEnter={preloadAuth}
+                onFocus={preloadAuth}
+              >
                 <User />
                 <span className="sr-only">Sign in</span>
               </Button>

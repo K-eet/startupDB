@@ -1,17 +1,33 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import {
-  User,
-  getAuth,
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut as firebaseSignOut,
-  GoogleAuthProvider,
-} from 'firebase/auth';
+import type { User, Auth } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 
-const auth = getAuth(app);
+// ponytail: firebase/auth (~100kB) is lazy-loaded so it stays out of the shared
+// chunk on every page. Cached promise = fetched once, shared by the provider's
+// onAuthStateChanged subscription, the sign-in/out handlers, and preloadAuth().
+type AuthModule = typeof import('firebase/auth');
+let authPromise: Promise<{ mod: AuthModule; auth: Auth }> | null = null;
+
+function loadAuth() {
+  if (!authPromise) {
+    authPromise = import('firebase/auth').then((mod) => ({
+      mod,
+      auth: mod.getAuth(app),
+    }));
+  }
+  return authPromise;
+}
+
+// Warm the chunk before the user clicks "sign in". signInWithPopup must open its
+// window inside the click's transient user-activation window; if the chunk is
+// still downloading, the await stalls past that window and the popup gets blocked.
+// The provider mount already calls loadAuth(); hover-preload is belt-and-braces.
+// ponytail: if popups still get blocked on strict Safari, switch to signInWithRedirect.
+export function preloadAuth() {
+  void loadAuth();
+}
 
 interface AuthContextValue {
   user: User | null;
@@ -23,8 +39,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const googleProvider = new GoogleAuthProvider();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -55,25 +69,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        await checkAdmin(firebaseUser);
-      } else {
-        setIsAdmin(false);
-      }
-      setLoading(false);
+    let active = true;
+    let unsubscribe = () => {};
+    loadAuth().then(({ mod, auth }) => {
+      if (!active) return;
+      unsubscribe = mod.onAuthStateChanged(auth, async (firebaseUser) => {
+        setUser(firebaseUser);
+        if (firebaseUser) {
+          await checkAdmin(firebaseUser);
+        } else {
+          setIsAdmin(false);
+        }
+        setLoading(false);
+      });
     });
-
-    return unsubscribe;
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, [checkAdmin]);
 
   const signInWithGoogle = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider);
+    const { mod, auth } = await loadAuth();
+    await mod.signInWithPopup(auth, new mod.GoogleAuthProvider());
   }, []);
 
   const signOut = useCallback(async () => {
-    await firebaseSignOut(auth);
+    const { mod, auth } = await loadAuth();
+    await mod.signOut(auth);
     setIsAdmin(false);
   }, []);
 

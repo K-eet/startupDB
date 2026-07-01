@@ -10,6 +10,7 @@
     "dev": "next dev --turbopack -p 9002",
     "build": "NODE_ENV=production next build",
     "start": "next start",
+    "test": "node --test 'src/**/*.test.ts'",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "upload-companies": "tsx scripts/upload-companies.ts"
