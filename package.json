@@ -11,7 +11,7 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "test": "node --test 'src/**/*.test.ts'",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "upload-companies": "tsx scripts/upload-companies.ts"
   },
@@ -42,7 +42,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
-    "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
     "firebase-admin": "^13.7.0",
     "firebase-functions": "^7.2.3",
@@ -51,10 +50,8 @@
     "next-themes": "^0.3.0",
     "patch-package": "^8.0.0",
     "react": "^18.3.1",
-    "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
-    "recharts": "^2.15.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
@@ -63,6 +60,8 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.19",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

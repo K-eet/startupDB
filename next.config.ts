@@ -3,7 +3,8 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   eslint: {
-    ignoreDuringBuilds: true,
+    // Lint is clean (0 errors); let the build enforce it. Warnings don't fail builds.
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [
