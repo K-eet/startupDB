@@ -32,7 +32,7 @@ export function AppShell({
   children: React.ReactNode;
   pageName: string;
   description?: React.ReactNode;
-  activeTab: 'startups' | 'vcs' | 'events' | 'jobs';
+  activeTab: 'startups' | 'vcs' | 'events' | 'jobs' | 'account';
   onTabChange: (tab: 'startups' | 'vcs' | 'events') => void;
   hideHeaderActionsOnDesktop?: boolean;
   hideTitle?: boolean;
@@ -165,6 +165,10 @@ export function AppShell({
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/me')}>
+                    <User />
+                    My Account
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => router.push('/admin')}>
                       <Shield />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
+import { requireUser } from '@/lib/verify-request';
 import {
   CONTACT_NAME_MAX,
   LIMITS,
@@ -11,6 +12,8 @@ import {
 } from '@/lib/company-request';
 
 const COLLECTION = 'companyRequests';
+
+export const dynamic = 'force-dynamic';
 
 function asTrimmedString(value: unknown, max: number): string {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -85,11 +88,17 @@ export async function POST(request: NextRequest) {
     company = { name: companyName, url, descriptor };
   }
 
+  // Attach the submitter's uid when signed in (anonymous requests still allowed).
+  // requestKind (claim vs join) is resolved at APPROVAL time from the target's
+  // ownerUids, not here — avoids a TOCTOU if the company gains an owner meanwhile.
+  const decoded = await requireUser(request);
+
   try {
     const docRef = await adminDb.collection(COLLECTION).add({
       type,
       // true (1) = submitted via "Add a company"; false (0) = via "Claim a company".
       newCompany: type === 'add',
+      ...(decoded ? { uid: decoded.uid } : {}),
       contact: {
         name,
         email,

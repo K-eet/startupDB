@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useAllCompanies } from '@/hooks/useAllCompanies';
 import { CompanyList } from './components/company-list';
+import { Button } from '@/components/ui/button';
+import { Inbox } from 'lucide-react';
 
 export default function AdminPage() {
   const { companies, loading, error } = useAllCompanies();
@@ -23,6 +26,12 @@ export default function AdminPage() {
             <p className="text-sm text-muted-foreground">{companies.length} companies total</p>
           )}
         </div>
+        <Button variant="outline" asChild>
+          <Link href="/admin/queue">
+            <Inbox className="h-4 w-4" />
+            Moderation queue
+          </Link>
+        </Button>
       </div>
       <CompanyList companies={companies} loading={loading} />
     </div>

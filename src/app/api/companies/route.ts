@@ -32,10 +32,16 @@ export async function GET(request: NextRequest) {
     const snapshot = await adminDb
       .collection('companies')
       .orderBy(new FieldPath('Company Name'))
-      .select(...DIRECTORY_FIELDS.map((f) => new FieldPath(f)))
+      .select(...DIRECTORY_FIELDS.map((f) => new FieldPath(f)), new FieldPath('published'))
       .get();
 
-    const companies = snapshot.docs.map((doc) => doc.data() as Company);
+    // Exclude user-submitted drafts (published === false). Existing companies
+    // have no `published` field, so they're included by default. Filtered in
+    // memory rather than via a query so a `!=`/missing-field filter doesn't drop
+    // the un-flagged legacy docs.
+    const companies = snapshot.docs
+      .filter((doc) => doc.data().published !== false)
+      .map((doc) => doc.data() as Company);
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

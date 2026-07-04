@@ -3,37 +3,106 @@ import * as React from 'react';
 import { AppShell } from '@/app/components/app-shell';
 import { EventCard } from '@/app/events/components/event-card';
 import { EventsCalendar } from '@/app/events/components/events-calendar';
-import { initialEvents, type EventType } from '@/lib/events-data';
+import { EventsFilters } from '@/app/events/components/events-filters';
+import { PostEventDialog } from '@/app/events/components/post-event-dialog';
+import { EmptyState } from '@/app/components/empty-state';
+import { type EventCategory, type EventType } from '@/lib/events-data';
+import { useEvents, useAffiliations } from '@/hooks/useEvents';
+import { authedFetch, errorMessage } from '@/lib/api-client';
 import { groupEventsByDate } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
-import { SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, CalendarDays, Search } from 'lucide-react';
 import { parseISO } from 'date-fns';
 
-// Demo offsets (in days from today): 2 days, 1 week + 2 days, 1 month + 3 days.
-const DEMO_OFFSETS = [2, 9, 33];
-
 export default function EventsPage() {
-  const [dynamicEvents, setDynamicEvents] = React.useState<EventType[]>([]);
+  const { user, signInWithGoogle } = useAuth();
+  const { toast } = useToast();
+  const signedIn = !!user;
 
-  React.useEffect(() => {
-    // By generating future dates and grouping on the client, we avoid hydration mismatch.
-    const getFutureDate = (days: number) => {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      return date.toISOString().split('T')[0];
-    };
+  const { events, error, reload } = useEvents(user?.uid);
+  const affiliations = useAffiliations(user?.uid);
+  const loading = events === null;
 
-    setDynamicEvents(
-      initialEvents.map((event, index) => ({
-        ...event,
-        date: getFutureDate(DEMO_OFFSETS[index % DEMO_OFFSETS.length]),
-      }))
-    );
-  }, []);
+  const [activeCategories, setActiveCategories] = React.useState<Set<EventCategory>>(new Set());
+  const [onlyMine, setOnlyMine] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<EventType | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<EventType | null>(null);
 
-  const groupedEvents = React.useMemo(() => groupEventsByDate(dynamicEvents), [dynamicEvents]);
-  const eventDates = React.useMemo(() => dynamicEvents.map((event) => parseISO(event.date)), [dynamicEvents]);
-  const totalEvents = Object.values(groupedEvents).flat().length;
+  const filtered = React.useMemo(() => {
+    return (events ?? [])
+      .filter((e) => activeCategories.size === 0 || activeCategories.has(e.category))
+      .filter((e) => !onlyMine || e.mine);
+  }, [events, activeCategories, onlyMine]);
+
+  const groupedEvents = React.useMemo(() => groupEventsByDate(filtered), [filtered]);
+  const eventDates = React.useMemo(() => filtered.map((e) => parseISO(e.date)), [filtered]);
+  const hasFilters = activeCategories.size > 0 || onlyMine;
+
+  function toggleCategory(category: EventCategory) {
+    setActiveCategories((prev) => {
+      const next = new Set(prev);
+      next.has(category) ? next.delete(category) : next.add(category);
+      return next;
+    });
+  }
+  function clearFilters() {
+    setActiveCategories(new Set());
+    setOnlyMine(false);
+  }
+
+  function openNew() {
+    if (!signedIn) {
+      toast({ title: 'Sign in to post an event', description: 'Continue with Google to add an event.' });
+      signInWithGoogle().catch(() => {});
+      return;
+    }
+    setEditing(null);
+    setDialogOpen(true);
+  }
+  function openEdit(event: EventType) {
+    setEditing(event);
+    setDialogOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    const res = await authedFetch(`/api/events/${target.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast({ title: 'Event deleted', description: target.title, variant: 'destructive' });
+      reload();
+    } else {
+      toast({ title: 'Could not delete event', description: await errorMessage(res), variant: 'destructive' });
+    }
+  }
+
+  const sidebar = (
+    <div className="space-y-4">
+      <EventsCalendar eventDates={eventDates} />
+      <EventsFilters
+        activeCategories={activeCategories}
+        onToggleCategory={toggleCategory}
+        onlyMine={onlyMine}
+        onOnlyMineChange={setOnlyMine}
+        mineAvailable={signedIn}
+      />
+    </div>
+  );
 
   return (
     <AppShell
@@ -43,87 +112,139 @@ export default function EventsPage() {
       onTabChange={() => {}}
     >
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar */}
-        <aside className="w-full lg:w-80 flex-shrink-0 space-y-4">
-          <EventsCalendar eventDates={eventDates} />
+        <aside className="w-full lg:w-80 flex-shrink-0">{sidebar}</aside>
 
-          <div className="border border-border bg-card p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <SlidersHorizontal className="h-4 w-4" />
-              <h2 className="font-semibold text-sm uppercase tracking-wide">Filters</h2>
-              <span className="text-xs text-muted-foreground ml-auto">Coming Soon</span>
-            </div>
-
-            <div>
-              <button
-                disabled
-                className="flex items-center justify-between w-full py-2 text-left opacity-50 cursor-not-allowed"
-              >
-                <span className="font-medium text-sm flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-400 dark:bg-red-500"></span>
-                  Event Type
-                </span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-
-            <Separator className="my-3" />
-
-            <div>
-              <button
-                disabled
-                className="flex items-center justify-between w-full py-2 text-left opacity-50 cursor-not-allowed"
-              >
-                <span className="font-medium text-sm flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500"></span>
-                  Date Range
-                </span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-
-            <Separator className="my-3" />
-
-            <div>
-              <button
-                disabled
-                className="flex items-center justify-between w-full py-2 text-left opacity-50 cursor-not-allowed"
-              >
-                <span className="font-medium text-sm flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 border border-gray-500 dark:border-gray-400"></span>
-                  Location
-                </span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1">
-          <div className="mb-4">
+        <main className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
             <p className="text-sm text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{totalEvents}</span> events
+              {loading ? (
+                'Loading events…'
+              ) : (
+                <>
+                  Showing <span className="font-semibold text-foreground">{filtered.length}</span> event
+                  {filtered.length !== 1 ? 's' : ''}
+                  {hasFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="ml-2.5 text-primary font-semibold hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </>
+              )}
             </p>
+            <Button onClick={openNew}>
+              <Plus className="h-4 w-4" />
+              Post an event
+            </Button>
           </div>
 
-          <div className="space-y-8">
-            {Object.entries(groupedEvents).map(([groupTitle, events]) => (
-              <section key={groupTitle}>
-                <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">
-                  {groupTitle}{' '}
-                  <span className="text-foreground">({events.length})</span>
-                </h2>
-                <div className="grid grid-cols-1 gap-4">
-                  {events.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
+          {loading ? (
+            <div className="space-y-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="border border-border border-l-4 border-l-muted bg-card p-4 flex gap-4">
+                  <Skeleton className="h-14 w-14 flex-shrink-0" />
+                  <div className="flex-1 space-y-2.5">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-2/5" />
+                    <Skeleton className="h-3 w-1/3" />
+                    <div className="flex gap-2 pt-1">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-5 w-14" />
+                    </div>
+                  </div>
                 </div>
-              </section>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : error ? (
+            <EmptyState
+              icon={Search}
+              title="Couldn't load events"
+              body="Something went wrong fetching events. Please try again."
+              action={
+                <Button variant="outline" onClick={reload}>
+                  Retry
+                </Button>
+              }
+            />
+          ) : filtered.length === 0 ? (
+            hasFilters ? (
+              <EmptyState
+                icon={Search}
+                title="No events match"
+                body="Nothing lines up with your current filters. Try clearing the category filters."
+                action={
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                }
+              />
+            ) : (
+              <EmptyState
+                icon={CalendarDays}
+                title="No events yet"
+                body="StartupDB just launched — no events have been posted. Be the first to put one on the map for the Malaysian startup community."
+                action={
+                  <Button onClick={openNew}>
+                    <Plus className="h-4 w-4" />
+                    Post the first event
+                  </Button>
+                }
+              />
+            )
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(groupedEvents).map(([groupTitle, groupEvents]) => (
+                <section key={groupTitle}>
+                  <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3">
+                    {groupTitle} <span className="text-foreground">({groupEvents.length})</span>
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4">
+                    {groupEvents.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        canEdit={signedIn && !!event.mine}
+                        onEdit={openEdit}
+                        onDelete={setDeleteTarget}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </main>
       </div>
+
+      <PostEventDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editing={editing}
+        affiliations={affiliations}
+        onSaved={reload}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+            <AlertDialogDescription>
+              “{deleteTarget?.title}” will be removed permanently. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

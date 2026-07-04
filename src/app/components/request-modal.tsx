@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { authedFetch } from '@/lib/api-client';
 import {
   COUNTRIES,
   LIMITS,
@@ -136,9 +137,11 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
     };
 
     try {
-      const res = await fetch('/api/company-requests', {
+      // authedFetch attaches the user's ID token when signed in, so the request
+      // is linked to their account (uid) and approval can grant ownership.
+      // Anonymous (signed-out) submissions still work — the header is omitted.
+      const res = await authedFetch('/api/company-requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const result = await res.json().catch(() => ({}));

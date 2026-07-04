@@ -60,3 +60,6 @@ CLAUDE.md
 # google cloud sdk (installed locally, not part of repo)
 google-cloud-sdk/
 google-cloud-cli-*.tar.gz
+
+# understand-anything knowledge graph (local tooling, not for repo)
+.understand-anything/

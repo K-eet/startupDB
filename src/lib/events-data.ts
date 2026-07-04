@@ -1,5 +1,7 @@
 export type EventCategory = 'Meetup' | 'Conference/Summit' | 'Talk/Panel' | 'Demo Day/Pitch' | 'Others';
 
+export type EventStatus = 'live' | 'pending';
+
 export const eventCategories = {
   Meetup: { colorName: 'event-meetup', colorHex: '#EF4444' }, // Red
   'Conference/Summit': { colorName: 'event-conference', colorHex: '#F97316' }, // Orange
@@ -8,106 +10,70 @@ export const eventCategories = {
   Others: { colorName: 'event-others', colorHex: '#14B8A6' }, // Teal
 };
 
+export const eventCategoryOrder: EventCategory[] = [
+  'Meetup',
+  'Conference/Summit',
+  'Talk/Panel',
+  'Demo Day/Pitch',
+  'Others',
+];
+
+// Category → Tailwind classes. Shared across event card, filters, and the post dialog
+// so the color coding stays consistent (brief: Meetup red, Conference orange,
+// Talk violet, Demo blue, Others teal).
+export const categoryLeftBorderClass: Record<EventCategory, string> = {
+  Meetup: 'border-l-red-500',
+  'Conference/Summit': 'border-l-orange-500',
+  'Talk/Panel': 'border-l-violet-500',
+  'Demo Day/Pitch': 'border-l-blue-500',
+  Others: 'border-l-teal-500',
+};
+
+export const categorySolidClass: Record<EventCategory, string> = {
+  Meetup: 'bg-red-500 text-white hover:bg-red-600',
+  'Conference/Summit': 'bg-orange-500 text-white hover:bg-orange-600',
+  'Talk/Panel': 'bg-violet-500 text-white hover:bg-violet-600',
+  'Demo Day/Pitch': 'bg-blue-500 text-white hover:bg-blue-600',
+  Others: 'bg-teal-500 text-white hover:bg-teal-600',
+};
+
+export const categoryDotClass: Record<EventCategory, string> = {
+  Meetup: 'bg-red-500',
+  'Conference/Summit': 'bg-orange-500',
+  'Talk/Panel': 'bg-violet-500',
+  'Demo Day/Pitch': 'bg-blue-500',
+  Others: 'bg-teal-500',
+};
+
+// Accent bar at the top of the post dialog.
+export const categoryBarClass: Record<EventCategory, string> = {
+  Meetup: 'bg-red-500',
+  'Conference/Summit': 'bg-orange-500',
+  'Talk/Panel': 'bg-violet-500',
+  'Demo Day/Pitch': 'bg-blue-500',
+  Others: 'bg-teal-500',
+};
+
 export type EventType = {
-  id: number;
+  id: string; // Firestore document id
   title: string;
   date: string; // ISO 8601 format: 'YYYY-MM-DD'
   time: string;
   location: string;
-  organizer: string;
   category: EventCategory;
   tags: string[];
+  online?: boolean;
+  // Attribution: who posted it and (optionally) the company it was posted as.
+  person?: string;
+  org?: string | null;
+  companySlug?: string;
+  ownerUid?: string;
+  // 'live' shows publicly; 'pending' is awaiting moderation (unaffiliated posters).
+  status?: EventStatus;
+  // Posted by the current viewer — enables owner edit/delete controls.
+  mine?: boolean;
 };
 
-export const initialEvents: Omit<EventType, 'date'>[] = [
-  {
-    id: 1,
-    title: 'Seed Funding Office Hours',
-    time: 'Tue, 23 Dec ・ 10am - 1pm',
-    location: 'Online',
-    organizer: 'Endeavor Malaysia',
-    category: 'Meetup',
-    tags: ['Funding', 'Invite-only'],
-  },
-  {
-    id: 2,
-    title: 'Design Thinking for Founders',
-    time: 'Wed, 24 Dec ・ 2pm - 5pm',
-    location: 'WORQ, KL Sentral',
-    organizer: 'StartupKL',
-    category: 'Talk/Panel',
-    tags: ['Workshop', 'Paid'],
-  },
-  {
-    id: 3,
-    title: 'Full-Stack Developer Bootcamp Final Pitch',
-    time: '27-29 Dec ・ 10am (Day 1) - 5pm (Final day)',
-    location: 'Online',
-    organizer: 'NEXT Academy',
-    category: 'Demo Day/Pitch',
-    tags: ['Tech', 'Paid'],
-  },
-  {
-    id: 4,
-    title: 'New Year Founders Gathering',
-    time: 'Sat, 3 Jan ・ 6pm - 9pm',
-    location: 'The Alley, Changkat',
-    organizer: 'Malaysian Founders Network',
-    category: 'Meetup',
-    tags: ['Networking', 'Free'],
-  },
-  {
-    id: 5,
-    title: 'AI in FinTech Summit',
-    time: 'Sun, 10 Jan ・ 9am - 4pm',
-    location: 'Connexion Conference & Event Centre',
-    organizer: 'Fintech Association of Malaysia',
-    category: 'Conference/Summit',
-    tags: ['AI', 'Fintech', 'Paid'],
-  },
-  {
-    id: 6,
-    title: 'VC & Founder Networking Night',
-    time: 'Fri, 28 Dec ・ 7pm - 10pm',
-    location: 'Private Rooftop Bar, Bangsar',
-    organizer: 'VC Connect',
-    category: 'Meetup',
-    tags: ['Networking', 'Invite-only'],
-  },
-  {
-    id: 7,
-    title: 'Asia EdTech Conference 2025',
-    time: '15-16 Jan ・ 9am - 6pm',
-    location: 'Suntec Convention Centre, Singapore',
-    organizer: 'EdTech Asia',
-    category: 'Conference/Summit',
-    tags: ['EdTech', 'Regional', 'Paid'],
-  },
-  {
-    id: 8,
-    title: 'Panel: The Future of Work with AI',
-    time: 'Thurs, 1 Jan ・ 4pm - 5:30pm',
-    location: 'Online',
-    organizer: 'TechCrunch',
-    category: 'Talk/Panel',
-    tags: ['AI', 'Future of Work', 'Free'],
-  },
-  {
-    id: 9,
-    title: 'Accelerator Batch #13 Demo Day',
-    time: 'Mon, 20 Jan ・ 2pm - 5pm',
-    location: 'Auditorium, Technology Park Malaysia',
-    organizer: 'Cyberview Living Lab Accelerator',
-    category: 'Demo Day/Pitch',
-    tags: ['Pitching', 'Investment', 'Invite-only'],
-  },
-  {
-    id: 10,
-    title: 'Startup Legal 101: From Incorporation to Fundraising',
-    time: 'Thurs, 25 Dec ・ 10am - 12pm',
-    location: 'Online',
-    organizer: 'ZICO Law',
-    category: 'Others',
-    tags: ['Legal', 'Workshop', 'Free'],
-  }
-];
+// A company the signed-in user can post events "as" (from their memberships).
+export type Affiliation = { id: string; name: string };
+

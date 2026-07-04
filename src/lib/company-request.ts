@@ -5,6 +5,18 @@
 
 export type CompanyRequestMode = 'claim' | 'add';
 
+// A claim/join request resolves to one of two outcomes, decided at APPROVAL
+// time (not submit time) to avoid a TOCTOU where the company gains an owner
+// between submission and approval:
+//   'claim' — company has no owner yet → approver grants the requester 'owner'.
+//   'join'  — company already owned     → approver grants 'member'.
+export type RequestKind = 'claim' | 'join';
+
+/** Classify a pending request from the target company's current ownerUids. */
+export function classifyRequestKind(ownerUids?: string[]): RequestKind {
+  return ownerUids && ownerUids.length > 0 ? 'join' : 'claim';
+}
+
 export type ClaimTarget = {
   slug: string;
   name: string;

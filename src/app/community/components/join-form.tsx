@@ -82,7 +82,7 @@ export function JoinForm({
               onChange={set('areaCode')}
               placeholder="60"
               aria-label="Area code"
-              className="h-auto w-10 border-0 bg-background px-0 text-sm font-medium text-muted-foreground"
+              className="h-auto w-10 border-0 bg-background px-0 text-sm font-medium text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </span>
           <Input

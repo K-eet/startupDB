@@ -75,6 +75,10 @@ const TOC = [
 
 const FAQ = [
   {
+    q: "Why does my company profile not have a profile picture?",
+    a: "Only claimed profiles can upload a profile picture. If you own this company, claim the profile to add one and keep your listing up to date.",
+  },
+  {
     q: 'What if a company fits more than one sector?',
     a: "It happens often. We assign the single sector that best reflects the company's primary product and where most of its revenue comes from. This keeps every company counted exactly once and the totals meaningful.",
   },
@@ -92,7 +96,7 @@ const FAQ = [
   },
   {
     q: 'I think a company is in the wrong category.',
-    a: "Let us know. Every listing can be reviewed and corrected — claim the profile if it's yours, or get in touch, and we'll update its sector and type.",
+    a: "We only entertain claim requests from verified company insiders. If you are one, claim the profile and you can request a recategorisation with evidence to support the change.",
   },
 ];
 

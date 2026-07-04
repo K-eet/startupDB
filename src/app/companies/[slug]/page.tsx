@@ -15,9 +15,13 @@ const getCompany = cache(async (slug: string): Promise<Company | null> => {
     .limit(1)
     .get();
   if (snapshot.empty) return null;
+  const data = snapshot.docs[0].data();
+  // Unpublished drafts (user-submitted, not yet enriched) 404 like a missing
+  // company so direct links don't leak them.
+  if (data.published === false) return null;
   // Round-trip to plain JSON: the raw doc may hold Firestore Timestamps/refs,
   // which can't cross the server→client boundary into CompanyProfilePage.
-  return JSON.parse(JSON.stringify(snapshot.docs[0].data())) as Company;
+  return JSON.parse(JSON.stringify(data)) as Company;
 });
 
 export async function generateMetadata({
