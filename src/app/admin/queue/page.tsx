@@ -10,6 +10,7 @@ import { EmptyState } from '@/app/components/empty-state';
 import { StatusPill } from '@/app/components/status-badges';
 import { useToast } from '@/hooks/use-toast';
 import { authedFetch, errorMessage } from '@/lib/api-client';
+import { invalidateCompaniesCache } from '@/hooks/useAllCompanies';
 import { timeAgo } from '@/lib/account-data';
 import { categoryLeftBorderClass, categorySolidClass, type EventCategory } from '@/lib/events-data';
 import type { StoredEvent } from '@/lib/event-submission';
@@ -242,6 +243,7 @@ export default function ModerationQueuePage() {
       return;
     }
     setDraftItems((prev) => (prev ?? []).filter((x) => x.slug !== draft.slug));
+    invalidateCompaniesCache(); // newly-published company should show on next directory load
     toast({ title: 'Company published', description: `${draft.name} is now live in the directory.` });
   }
 

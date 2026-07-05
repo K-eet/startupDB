@@ -25,7 +25,7 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, CalendarDays, Search } from 'lucide-react';
-import { parseISO } from 'date-fns';
+import { parseISO, isSameDay, format } from 'date-fns';
 
 export default function EventsPage() {
   const { user, signInWithGoogle } = useAuth();
@@ -38,19 +38,32 @@ export default function EventsPage() {
 
   const [activeCategories, setActiveCategories] = React.useState<Set<EventCategory>>(new Set());
   const [onlyMine, setOnlyMine] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<EventType | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<EventType | null>(null);
 
-  const filtered = React.useMemo(() => {
+  // Category + "mine" filtering. Drives the calendar dots — NOT narrowed by the selected
+  // day, so picking a day doesn't make the other days' dots disappear.
+  const categoryMineFiltered = React.useMemo(() => {
     return (events ?? [])
       .filter((e) => activeCategories.size === 0 || activeCategories.has(e.category))
       .filter((e) => !onlyMine || e.mine);
   }, [events, activeCategories, onlyMine]);
 
+  const eventDates = React.useMemo(
+    () => categoryMineFiltered.map((e) => parseISO(e.date)),
+    [categoryMineFiltered],
+  );
+
+  // The visible list additionally narrows to the clicked calendar day.
+  const filtered = React.useMemo(() => {
+    if (!selectedDate) return categoryMineFiltered;
+    return categoryMineFiltered.filter((e) => isSameDay(parseISO(e.date), selectedDate));
+  }, [categoryMineFiltered, selectedDate]);
+
   const groupedEvents = React.useMemo(() => groupEventsByDate(filtered), [filtered]);
-  const eventDates = React.useMemo(() => filtered.map((e) => parseISO(e.date)), [filtered]);
-  const hasFilters = activeCategories.size > 0 || onlyMine;
+  const hasFilters = activeCategories.size > 0 || onlyMine || selectedDate !== null;
 
   function toggleCategory(category: EventCategory) {
     setActiveCategories((prev) => {
@@ -62,6 +75,7 @@ export default function EventsPage() {
   function clearFilters() {
     setActiveCategories(new Set());
     setOnlyMine(false);
+    setSelectedDate(null);
   }
 
   function openNew() {
@@ -93,7 +107,7 @@ export default function EventsPage() {
 
   const sidebar = (
     <div className="space-y-4">
-      <EventsCalendar eventDates={eventDates} />
+      <EventsCalendar eventDates={eventDates} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
       <EventsFilters
         activeCategories={activeCategories}
         onToggleCategory={toggleCategory}
@@ -123,6 +137,9 @@ export default function EventsPage() {
                 <>
                   Showing <span className="font-semibold text-foreground">{filtered.length}</span> event
                   {filtered.length !== 1 ? 's' : ''}
+                  {selectedDate && (
+                    <> on <span className="font-semibold text-foreground">{format(selectedDate, 'EEE, MMM d')}</span></>
+                  )}
                   {hasFilters && (
                     <button
                       onClick={clearFilters}

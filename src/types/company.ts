@@ -29,6 +29,10 @@ export interface Company {
   'AI Confidence'?: string;
   'AI Reasoning'?: string;
   'AI Model'?: string;
+  // Directory visibility. Absent on legacy docs (treated as published); false = hidden draft
+  // (user-submitted, awaiting enrichment). See /api/companies filter and the admin edit form.
+  published?: boolean;
+  userSubmitted?: boolean;
 }
 
 // Helper to normalize a field that might be a string or array

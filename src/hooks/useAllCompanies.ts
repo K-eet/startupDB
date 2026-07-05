@@ -16,6 +16,15 @@ interface UseAllCompaniesResult {
 let companiesCache: Company[] | null = null;
 let companiesFetchPromise: Promise<Company[]> | null = null;
 
+// Drop the cached directory so the next useAllCompanies() refetches from /api/companies.
+// Call after an admin write (edit/publish) so changes show without a hard refresh.
+// Note: /api/companies is also CDN-cached (s-maxage=300), so a change can still lag up
+// to ~5 min at the edge even after this clears the in-tab cache.
+export function invalidateCompaniesCache(): void {
+  companiesCache = null;
+  companiesFetchPromise = null;
+}
+
 // Fetch all companies for the directory's client-side filtering.
 // Hits /api/companies (CDN-cached, slim directory fields, gzipped) over plain
 // fetch — deliberately NO Firebase client SDK import, so the directory and admin

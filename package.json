@@ -13,7 +13,7 @@
     "test": "node --test 'src/**/*.test.ts'",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "upload-companies": "tsx scripts/upload-companies.ts"
+    "upload-companies": "tsx scripts/upload-companies-v2.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
