@@ -328,8 +328,8 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
                   value={country.code}
                   onValueChange={(code) => setCountry(COUNTRIES.find((c) => c.code === code) ?? COUNTRIES[0])}
                 >
-                  <SelectTrigger className="h-auto w-auto gap-1 rounded-none border-0 border-r border-border bg-muted px-3 py-2.5 text-[13px] font-semibold focus:ring-0">
-                    <SelectValue>{country.code} {country.dial}</SelectValue>
+                  <SelectTrigger className="h-auto w-auto gap-1 whitespace-nowrap rounded-none border-0 border-r border-border bg-muted px-3 py-2.5 text-[13px] font-semibold focus:ring-0">
+                    <SelectValue>{country.dial}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {COUNTRIES.map((c) => (

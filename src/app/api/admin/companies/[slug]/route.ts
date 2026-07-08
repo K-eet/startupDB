@@ -4,8 +4,8 @@ import { requireUser, isAdmin } from '@/lib/verify-request';
 
 export const dynamic = 'force-dynamic';
 
-/** Publish a draft company → visible in the directory. Admin only. */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+/** Delete a company outright (admin only). Used from the edit page. */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decoded = await requireUser(request);
   if (!decoded || !isAdmin(decoded)) {
@@ -16,10 +16,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (snap.empty) return NextResponse.json({ error: 'Company not found.' }, { status: 404 });
 
   try {
-    await snap.docs[0].ref.update({ published: true });
+    await snap.docs[0].ref.delete();
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Failed to publish company:', error);
+    console.error('Failed to delete company:', error);
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +20,6 @@ import { EmptyState } from '@/app/components/empty-state';
 import { StatusPill } from '@/app/components/status-badges';
 import { useToast } from '@/hooks/use-toast';
 import { authedFetch, errorMessage } from '@/lib/api-client';
-import { invalidateCompaniesCache } from '@/hooks/useAllCompanies';
 import { timeAgo } from '@/lib/account-data';
 import { categoryLeftBorderClass, categorySolidClass, type EventCategory } from '@/lib/events-data';
 import type { StoredEvent } from '@/lib/event-submission';
@@ -54,8 +52,6 @@ type QueueCompany = {
   submittedAt: string;
 };
 
-type Draft = { slug: string; name: string; descriptor: string; website: string; savedAt: string | null };
-
 type QueueSignup = {
   id: string;
   name: string;
@@ -77,7 +73,6 @@ type QueueResponse = {
     company: { name?: string; entityName?: string; url?: string; slug?: string; descriptor?: string } | null;
     submittedAt: number | null;
   }[];
-  drafts: { slug: string; name: string; descriptor: string; website: string; savedAt: string | null }[];
   signups: {
     id: string;
     name: string;
@@ -266,15 +261,21 @@ function CompanyRow({
             <span className="text-xs text-muted-foreground ml-auto">{timeAgo(req.submittedAt)}</span>
           </div>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
-          {onEdit && (
-            <Button variant="outline" size="sm" disabled={busy} onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-              Edit as draft
+        {onEdit ? (
+          // New-company requests: review (approve → open the edit page) or reject.
+          <div className="flex gap-2 flex-shrink-0">
+            <Button size="sm" disabled={busy} onClick={onEdit}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+              Review
             </Button>
-          )}
+            <Button variant="outline" size="sm" className="text-destructive" disabled={busy} onClick={onReject}>
+              <X className="h-4 w-4" />
+              Reject
+            </Button>
+          </div>
+        ) : (
           <RowActions busy={busy} onApprove={onApprove} onReject={onReject} />
-        </div>
+        )}
       </div>
     </div>
   );
@@ -285,7 +286,6 @@ export default function ModerationQueuePage() {
   const router = useRouter();
   const [eventItems, setEventItems] = React.useState<QueueEvent[] | null>(null);
   const [companyItems, setCompanyItems] = React.useState<QueueCompany[] | null>(null);
-  const [draftItems, setDraftItems] = React.useState<Draft[] | null>(null);
   const [signupItems, setSignupItems] = React.useState<QueueSignup[] | null>(null);
   const [editingSignup, setEditingSignup] = React.useState<QueueSignup | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
@@ -297,12 +297,10 @@ export default function ModerationQueuePage() {
       const data = (await res.json()) as QueueResponse;
       setEventItems(data.events.map(toQueueEvent));
       setCompanyItems(data.requests.map(toQueueCompany));
-      setDraftItems(data.drafts.map(({ slug, name, descriptor, website, savedAt }) => ({ slug, name, descriptor, website, savedAt })));
       setSignupItems(data.signups.map(toQueueSignup));
     } catch {
       setEventItems([]);
       setCompanyItems([]);
-      setDraftItems([]);
       setSignupItems([]);
     }
   }, []);
@@ -312,12 +310,11 @@ export default function ModerationQueuePage() {
 
   const events = eventItems ?? [];
   const companies = companyItems ?? [];
-  const drafts = draftItems ?? [];
   const signups = signupItems ?? [];
   const addReqs = companies.filter((c) => c.type === 'add');
   const claimReqs = companies.filter((c) => c.type === 'claim');
-  const loading = eventItems === null || companyItems === null || draftItems === null || signupItems === null;
-  const total = events.length + companies.length + drafts.length;
+  const loading = eventItems === null || companyItems === null || signupItems === null;
+  const total = events.length + companies.length;
 
   async function resolveEvent(ev: QueueEvent, action: 'approve' | 'reject') {
     setBusyId(ev.id);
@@ -343,21 +340,16 @@ export default function ModerationQueuePage() {
       return;
     }
     setCompanyItems((prev) => (prev ?? []).filter((x) => x.id !== req.id));
-    if (action === 'approve' && req.type === 'add') {
-      // Approved new companies land in Drafts (hidden) until published.
-      toast({ title: 'Company approved', description: `${req.name} added as a draft — enrich and publish it below.` });
-      load();
-      return;
-    }
     const noun = req.type === 'claim' ? 'Claim' : 'Company';
     if (action === 'approve')
       toast({ title: `${noun} approved`, description: `${req.name} ownership granted.` });
     else toast({ title: `${noun} rejected`, description: `${req.name} was declined.`, variant: 'destructive' });
   }
 
-  // Approve the request (which creates the hidden draft) then open it in the
-  // full edit form so the admin can enrich it like a regular entry before publishing.
-  async function editCompany(req: QueueCompany) {
+  // Review a new-company request: approve it (creates the hidden company entry)
+  // then open the full edit page, where the admin enriches it and chooses to
+  // approve & publish, save as draft, or delete.
+  async function reviewCompany(req: QueueCompany) {
     setBusyId(req.id);
     const res = await authedFetch(`/api/requests/${req.id}/approve`, { method: 'POST' });
     if (!res.ok) {
@@ -368,7 +360,7 @@ export default function ModerationQueuePage() {
     const { slug } = (await res.json().catch(() => ({}))) as { slug?: string };
     if (!slug) {
       setBusyId(null);
-      toast({ title: 'Action failed', description: 'Draft was created without a reference.', variant: 'destructive' });
+      toast({ title: 'Action failed', description: 'Entry was created without a reference.', variant: 'destructive' });
       return;
     }
     router.push(`/admin/companies/${slug}/edit`);
@@ -400,19 +392,6 @@ export default function ModerationQueuePage() {
     toast({ title: 'Signup deleted', description: `${s.name || 'Signup'} was removed.` });
   }
 
-  async function publishDraft(draft: Draft) {
-    setBusyId(draft.slug);
-    const res = await authedFetch(`/api/admin/companies/${draft.slug}/publish`, { method: 'POST' });
-    setBusyId(null);
-    if (!res.ok) {
-      toast({ title: 'Action failed', description: await errorMessage(res), variant: 'destructive' });
-      return;
-    }
-    setDraftItems((prev) => (prev ?? []).filter((x) => x.slug !== draft.slug));
-    invalidateCompaniesCache(); // newly-published company should show on next directory load
-    toast({ title: 'Company published', description: `${draft.name} is now live in the directory.` });
-  }
-
   return (
     <div>
       <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
@@ -433,8 +412,8 @@ export default function ModerationQueuePage() {
       </div>
 
       <p className="text-sm text-muted-foreground max-w-xl leading-relaxed mb-6">
-        Pending events, new-company and claim requests, and unpublished drafts land here.
-        Approving an event publishes it; approving a new company creates a hidden draft to enrich and publish.
+        Pending events, new-company and claim requests land here. Approving an event publishes it;
+        reviewing a new company opens the full edit page to enrich it before approving, saving as a draft, or deleting.
       </p>
 
       {loading ? (
@@ -447,7 +426,6 @@ export default function ModerationQueuePage() {
           <TabsTrigger value="events">Events ({events.length})</TabsTrigger>
           <TabsTrigger value="add">Add requests ({addReqs.length})</TabsTrigger>
           <TabsTrigger value="claims">Claim requests ({claimReqs.length})</TabsTrigger>
-          <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
           <TabsTrigger value="community">Community ({signups.length})</TabsTrigger>
         </TabsList>
 
@@ -508,7 +486,7 @@ export default function ModerationQueuePage() {
             <EmptyState
               icon={Check}
               title="No new-company requests"
-              body="Submissions from the “Add a company” flow show up here. Approving creates a hidden draft you enrich and publish from the Drafts tab."
+              body="Submissions from the “Add a company” flow show up here. Review one to open the full edit page, enrich it, then approve & publish, save as a draft, or delete."
             />
           ) : (
             <div className="space-y-3">
@@ -519,7 +497,7 @@ export default function ModerationQueuePage() {
                   busy={busyId === req.id}
                   onApprove={() => resolveCompany(req, 'approve')}
                   onReject={() => resolveCompany(req, 'reject')}
-                  onEdit={() => editCompany(req)}
+                  onEdit={() => reviewCompany(req)}
                 />
               ))}
             </div>
@@ -543,60 +521,6 @@ export default function ModerationQueuePage() {
                   onApprove={() => resolveCompany(req, 'approve')}
                   onReject={() => resolveCompany(req, 'reject')}
                 />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="drafts" className="mt-6">
-          {drafts.length === 0 ? (
-            <EmptyState
-              icon={Check}
-              title="No drafts"
-              body="Approved new companies land here hidden from the directory. Enrich each one in the edit form, then publish it to make it public."
-            />
-          ) : (
-            <div className="space-y-3">
-              {drafts.map((draft) => (
-                <div key={draft.slug} className="bg-card border border-border p-4">
-                  <div className="flex items-start gap-4 flex-wrap">
-                    <div className="w-11 h-11 flex-shrink-0 border border-border bg-muted flex items-center justify-center font-bold">
-                      {draft.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-[220px]">
-                      <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
-                        <span className="text-base font-bold tracking-tight">{draft.name}</span>
-                        <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                          Hidden draft
-                        </span>
-                      </div>
-                      {draft.descriptor && (
-                        <p className="text-sm text-muted-foreground leading-snug mb-2">{draft.descriptor}</p>
-                      )}
-                      {draft.website && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Link2 className="h-3.5 w-3.5" />
-                          {draft.website}
-                        </div>
-                      )}
-                      {draft.savedAt && (
-                        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <CalendarDays className="h-3.5 w-3.5" />
-                          Saved {format(parseISO(draft.savedAt), "d MMM yyyy, HH:mm")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/companies/${draft.slug}/edit`}>Edit</Link>
-                      </Button>
-                      <Button size="sm" disabled={busyId === draft.slug} onClick={() => publishDraft(draft)}>
-                        {busyId === draft.slug ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        Publish
-                      </Button>
-                    </div>
-                  </div>
-                </div>
               ))}
             </div>
           )}

@@ -13,12 +13,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [pendingEvents, requestsSnap, draftsSnap, signupsSnap] = await Promise.all([
+    const [pendingEvents, requestsSnap, signupsSnap] = await Promise.all([
       listPendingEvents(),
       adminDb.collection('companyRequests').where('status', '==', 'pending_review').get(),
-      // User-submitted companies awaiting enrichment + publish (single-field
-      // equality → auto-indexed).
-      adminDb.collection('companies').where('published', '==', false).get(),
       // 'Join our community' CTA signups — everyone, newest first.
       adminDb.collection('communitySignups').get(),
     ]);
@@ -48,18 +45,6 @@ export async function GET(request: NextRequest) {
       }))
       .sort((a, b) => (a.submittedAt ?? 0) - (b.submittedAt ?? 0));
 
-    const drafts = draftsSnap.docs
-      .map((d) => ({
-        slug: (d.data().Slug as string) ?? d.id,
-        name: (d.data()['Company Name'] as string) ?? d.id,
-        descriptor: (d.data()['One-line company description'] as string) ?? '',
-        website: (d.data()['Website URL'] as string) ?? '',
-        createdAt: (d.data().createdAt as string) ?? null,
-        // When the admin last saved the draft; falls back to createdAt if never edited.
-        savedAt: (d.data().updatedAt as string) ?? (d.data().createdAt as string) ?? null,
-      }))
-      .sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
-
     const signups = signupsSnap.docs
       .map((d) => {
         const s = d.data();
@@ -77,7 +62,7 @@ export async function GET(request: NextRequest) {
       })
       .sort((a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0));
 
-    return NextResponse.json({ events, requests, drafts, signups });
+    return NextResponse.json({ events, requests, signups });
   } catch (error) {
     console.error('Failed to load moderation queue:', error);
     return NextResponse.json({ error: 'Failed to load queue.' }, { status: 500 });

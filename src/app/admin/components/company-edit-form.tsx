@@ -1,16 +1,18 @@
 'use client';
 
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Company } from '@/types/company';
 import { updateCompanyFields } from '@/lib/admin-firestore';
+import { authedFetch, errorMessage } from '@/lib/api-client';
 import { invalidateCompaniesCache } from '@/hooks/useAllCompanies';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Form,
   FormControl,
@@ -26,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 
 const companyFormSchema = z.object({
   'Company Name': z.string().min(1, 'Company name is required'),
@@ -62,6 +64,8 @@ interface CompanyEditFormProps {
 
 export function CompanyEditForm({ company }: CompanyEditFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
+  const [deleting, setDeleting] = React.useState(false);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
@@ -96,7 +100,9 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
     },
   });
 
-  const onSubmit = async (values: CompanyFormValues) => {
+  // published is decided by which button is pressed (Approve vs Save as draft),
+  // so onSubmit is curried with the target visibility.
+  const onSubmit = (published: boolean) => async (values: CompanyFormValues) => {
     try {
       // Build the update object with legacy field names
       const updates: Partial<Company> = {
@@ -123,7 +129,7 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
         'Founder Titles': typeof values['Founder Titles'] === 'string'
           ? values['Founder Titles']
           : values['Founder Titles'] ?? '',
-        published: values.published,
+        published,
         updatedAt: new Date().toISOString(),
       };
 
@@ -131,11 +137,12 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
       invalidateCompaniesCache(); // so the directory/admin list refetch shows the edit
 
       toast({
-        title: 'Company updated',
-        description: values.published
-          ? `${values['Company Name']} saved and live in the directory.`
+        title: published ? 'Company approved' : 'Draft saved',
+        description: published
+          ? `${values['Company Name']} is live in the directory.`
           : `${values['Company Name']} saved as a hidden draft.`,
       });
+      if (published) router.push('/admin');
     } catch (error) {
       console.error('Error updating company:', error);
       toast({
@@ -146,9 +153,23 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete ${company['Company Name']}? This cannot be undone.`)) return;
+    setDeleting(true);
+    const res = await authedFetch(`/api/admin/companies/${company.Slug}`, { method: 'DELETE' });
+    if (!res.ok) {
+      setDeleting(false);
+      toast({ title: 'Delete failed', description: await errorMessage(res), variant: 'destructive' });
+      return;
+    }
+    invalidateCompaniesCache();
+    toast({ title: 'Company deleted', description: `${company['Company Name']} was removed.` });
+    router.push('/admin');
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit(true))} className="space-y-8">
         {/* Identity */}
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Identity</h2>
@@ -458,34 +479,28 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
           </div>
         </section>
 
-        {/* Visibility — fold publish into the edit so a draft can be published in one step */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Visibility</h2>
-          <FormField
-            control={form.control}
-            name="published"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 border border-border p-4">
-                <div className="space-y-1">
-                  <FormLabel>Published</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    {field.value
-                      ? 'Live in the public directory.'
-                      : 'Hidden draft — not shown in the directory until you publish.'}
-                  </p>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </section>
-
-        <div className="flex gap-4">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+        <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
+          <Button type="submit" disabled={form.formState.isSubmitting || deleting}>
             {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
+            Approve &amp; publish
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={form.formState.isSubmitting || deleting}
+            onClick={form.handleSubmit(onSubmit(false))}
+          >
+            Save as draft
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="ml-auto text-destructive hover:text-destructive"
+            disabled={form.formState.isSubmitting || deleting}
+            onClick={handleDelete}
+          >
+            {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            Delete
           </Button>
         </div>
       </form>
