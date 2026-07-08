@@ -124,6 +124,7 @@ export function CompanyEditForm({ company }: CompanyEditFormProps) {
           ? values['Founder Titles']
           : values['Founder Titles'] ?? '',
         published: values.published,
+        updatedAt: new Date().toISOString(),
       };
 
       await updateCompanyFields(company.Slug, updates);

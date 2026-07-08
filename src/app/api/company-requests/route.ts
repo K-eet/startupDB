@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
     company = { slug, name: companyName, indexed: true };
   } else {
     const companyName = asTrimmedString(data.companyName, LIMITS.name);
+    const entityName = asTrimmedString(data.entityName, LIMITS.entityName);
     const url = asTrimmedString(data.url, LIMITS.url);
     const descriptor = asTrimmedString(data.descriptor, LIMITS.descriptor);
     if (!companyName || !url || !descriptor) {
@@ -85,7 +86,8 @@ export async function POST(request: NextRequest) {
     if (uErr) {
       return NextResponse.json({ error: uErr }, { status: 400 });
     }
-    company = { name: companyName, url, descriptor };
+    // entityName is optional (legal registration may be unknown at submit time).
+    company = { name: companyName, url, descriptor, ...(entityName ? { entityName } : {}) };
   }
 
   // Attach the submitter's uid when signed in (anonymous requests still allowed).

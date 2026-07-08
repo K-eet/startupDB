@@ -47,7 +47,7 @@ export const COUNTRIES: CountryDialCode[] = [
 ];
 
 /** Character limits for the "Add a company" fields. */
-export const LIMITS = { name: 60, url: 100, descriptor: 120 } as const;
+export const LIMITS = { name: 60, entityName: 120, url: 100, descriptor: 120 } as const;
 
 /** Max length for the free-text contact name. */
 export const CONTACT_NAME_MAX = 80;

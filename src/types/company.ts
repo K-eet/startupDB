@@ -33,6 +33,9 @@ export interface Company {
   // (user-submitted, awaiting enrichment). See /api/companies filter and the admin edit form.
   published?: boolean;
   userSubmitted?: boolean;
+  // ISO timestamps. createdAt set on creation; updatedAt bumped on each admin save.
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Helper to normalize a field that might be a string or array

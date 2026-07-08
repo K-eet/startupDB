@@ -225,7 +225,7 @@ export default function CommunityPage() {
           <HouseRules />
         </div>
 
-        <div className="sticky top-0 flex h-screen flex-col justify-center">
+        <div className="sticky top-0 flex min-h-screen flex-col justify-center py-10">
           <JoinPanel submitted={submitted} submitting={submitting} data={data} onSubmit={handleSubmit} onReset={handleReset} />
         </div>
       </div>

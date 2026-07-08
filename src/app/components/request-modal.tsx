@@ -84,6 +84,7 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
   const [country, setCountry] = React.useState<CountryDialCode>(COUNTRIES[0]);
   const [number, setNumber] = React.useState('');
   const [coName, setCoName] = React.useState('');
+  const [coEntity, setCoEntity] = React.useState('');
   const [coUrl, setCoUrl] = React.useState('');
   const [coDesc, setCoDesc] = React.useState('');
   const [touched, setTouched] = React.useState(false);
@@ -99,6 +100,7 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
       setCountry(COUNTRIES[0]);
       setNumber('');
       setCoName('');
+      setCoEntity('');
       setCoUrl('');
       setCoDesc('');
       setTouched(false);
@@ -133,7 +135,7 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
       number: phoneDigits(number),
       ...(isClaim
         ? { companySlug: claimTarget?.slug ?? '', companyName: claimTarget?.name ?? '' }
-        : { companyName: coName.trim(), url: coUrl.trim(), descriptor: coDesc.trim() }),
+        : { companyName: coName.trim(), entityName: coEntity.trim(), url: coUrl.trim(), descriptor: coDesc.trim() }),
     };
 
     try {
@@ -220,6 +222,23 @@ export function RequestModal({ mode, claimTarget, open, onOpenChange }: Props) {
                     onChange={(e) => setCoName(e.target.value)}
                     placeholder="e.g. Acme Robotics"
                     className={cn(squareInput, touched && !coName.trim() && 'border-destructive')}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <FieldLabel>Entity name</FieldLabel>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">Optional</span>
+                    </div>
+                    <Counter value={coEntity} max={LIMITS.entityName} />
+                  </div>
+                  <Input
+                    value={coEntity}
+                    maxLength={LIMITS.entityName}
+                    onChange={(e) => setCoEntity(e.target.value)}
+                    placeholder="e.g. Acme Robotics Sdn. Bhd."
+                    className={squareInput}
                   />
                 </div>
 

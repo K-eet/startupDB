@@ -24,6 +24,22 @@ export type JoinFormData = {
   working: string;
 };
 
+// ponytail: hand-rolled list — no phone-input dep for a handful of codes; extend as needed
+const COUNTRY_CODES = [
+  { name: 'Malaysia', code: '60' },
+  { name: 'Singapore', code: '65' },
+  { name: 'Indonesia', code: '62' },
+  { name: 'Thailand', code: '66' },
+  { name: 'Philippines', code: '63' },
+  { name: 'Vietnam', code: '84' },
+  { name: 'India', code: '91' },
+  { name: 'China', code: '86' },
+  { name: 'Hong Kong', code: '852' },
+  { name: 'Australia', code: '61' },
+  { name: 'United Kingdom', code: '44' },
+  { name: 'United States', code: '1' },
+];
+
 const ROLES = [
   'Founder',
   'Investor / VC',
@@ -73,18 +89,17 @@ export function JoinForm({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="join-whatsapp" className="text-xs uppercase tracking-wide">WhatsApp number</Label>
         <div className="flex">
-          <span className="inline-flex items-center gap-1.5 rounded-l-md border border-r-0 border-input bg-background pl-3 text-sm font-medium text-muted-foreground">
-            <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
-            +
-            <Input
-              id="join-area-code"
-              value={data.areaCode}
-              onChange={set('areaCode')}
-              placeholder="60"
-              aria-label="Area code"
-              className="h-auto w-10 border-0 bg-background px-0 text-sm font-medium text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </span>
+          <Select value={data.areaCode} onValueChange={(v) => setData((d) => ({ ...d, areaCode: v }))}>
+            <SelectTrigger aria-label="Country code" className="w-auto gap-1.5 rounded-r-none border-r-0 font-medium text-muted-foreground">
+              <MessageCircle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span>+{data.areaCode}</span>
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRY_CODES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>{c.name} +{c.code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input
             id="join-whatsapp"
             value={data.whatsapp}

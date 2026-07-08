@@ -2,10 +2,21 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { EmptyState } from '@/app/components/empty-state';
 import { StatusPill } from '@/app/components/status-badges';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +26,7 @@ import { timeAgo } from '@/lib/account-data';
 import { categoryLeftBorderClass, categorySolidClass, type EventCategory } from '@/lib/events-data';
 import type { StoredEvent } from '@/lib/event-submission';
 import { format, parseISO } from 'date-fns';
-import { Check, X, Loader2, CalendarDays, MapPin, Laptop, Link2, Building2, Shield } from 'lucide-react';
+import { Check, X, Loader2, CalendarDays, MapPin, Laptop, Link2, Building2, Shield, Pencil, Trash2 } from 'lucide-react';
 
 type QueueEvent = {
   id: string;
@@ -33,6 +44,7 @@ type QueueCompany = {
   id: string;
   type: 'add' | 'claim';
   name: string;
+  entityName?: string;
   url?: string;
   slug?: string;
   descriptor?: string;
@@ -42,7 +54,19 @@ type QueueCompany = {
   submittedAt: string;
 };
 
-type Draft = { slug: string; name: string; descriptor: string; website: string };
+type Draft = { slug: string; name: string; descriptor: string; website: string; savedAt: string | null };
+
+type QueueSignup = {
+  id: string;
+  name: string;
+  email: string;
+  whatsapp: string;
+  org: string;
+  role: string;
+  working: string;
+  status: string;
+  submittedAt: string;
+};
 
 type QueueResponse = {
   events: (StoredEvent & { submitterEmail?: string })[];
@@ -50,10 +74,21 @@ type QueueResponse = {
     id: string;
     type: 'add' | 'claim';
     contact: { name?: string; email?: string; whatsapp?: { e164?: string } } | null;
-    company: { name?: string; url?: string; slug?: string; descriptor?: string } | null;
+    company: { name?: string; entityName?: string; url?: string; slug?: string; descriptor?: string } | null;
     submittedAt: number | null;
   }[];
-  drafts: { slug: string; name: string; descriptor: string; website: string; createdAt: string | null }[];
+  drafts: { slug: string; name: string; descriptor: string; website: string; savedAt: string | null }[];
+  signups: {
+    id: string;
+    name: string;
+    email: string;
+    whatsapp: string;
+    org: string;
+    role: string;
+    working: string;
+    status: string;
+    submittedAt: number | null;
+  }[];
 };
 
 const msToIso = (ms: number | null | undefined) => new Date(ms ?? Date.now()).toISOString();
@@ -77,6 +112,7 @@ function toQueueCompany(r: QueueResponse['requests'][number]): QueueCompany {
     id: r.id,
     type: r.type,
     name: r.company?.name ?? '—',
+    entityName: r.company?.entityName,
     url: r.company?.url,
     slug: r.company?.slug,
     descriptor: r.company?.descriptor,
@@ -85,6 +121,72 @@ function toQueueCompany(r: QueueResponse['requests'][number]): QueueCompany {
     whatsapp: r.contact?.whatsapp?.e164,
     submittedAt: msToIso(r.submittedAt),
   };
+}
+
+function toQueueSignup(s: QueueResponse['signups'][number]): QueueSignup {
+  return { ...s, submittedAt: msToIso(s.submittedAt) };
+}
+
+const SIGNUP_FIELDS: { key: keyof QueueSignup; label: string; textarea?: boolean }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'role', label: 'Role' },
+  { key: 'org', label: 'Organisation' },
+  { key: 'status', label: 'Status' },
+  { key: 'working', label: 'Working on', textarea: true },
+];
+
+function SignupEditDialog({
+  signup,
+  saving,
+  onSave,
+  onClose,
+}: {
+  signup: QueueSignup;
+  saving: boolean;
+  onSave: (s: QueueSignup) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = React.useState(signup);
+  React.useEffect(() => setDraft(signup), [signup]);
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-[460px]">
+        <DialogHeader>
+          <DialogTitle>Edit signup</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3">
+          {SIGNUP_FIELDS.map((f) => (
+            <div key={f.key} className="flex flex-col gap-1.5">
+              <Label htmlFor={`signup-${f.key}`} className="text-xs uppercase tracking-wide">{f.label}</Label>
+              {f.textarea ? (
+                <Textarea
+                  id={`signup-${f.key}`}
+                  value={draft[f.key]}
+                  rows={2}
+                  onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                />
+              ) : (
+                <Input
+                  id={`signup-${f.key}`}
+                  value={draft[f.key]}
+                  onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={() => onSave(draft)} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function RowActions({ onApprove, onReject, busy }: { onApprove: () => void; onReject: () => void; busy: boolean }) {
@@ -107,11 +209,13 @@ function CompanyRow({
   busy,
   onApprove,
   onReject,
+  onEdit,
 }: {
   req: QueueCompany;
   busy: boolean;
   onApprove: () => void;
   onReject: () => void;
+  onEdit?: () => void;
 }) {
   const isClaim = req.type === 'claim';
   return (
@@ -131,6 +235,9 @@ function CompanyRow({
               {isClaim ? 'Ownership claim' : 'New company'}
             </span>
           </div>
+          {req.entityName && (
+            <p className="text-xs text-muted-foreground leading-snug mb-1.5">Entity: {req.entityName}</p>
+          )}
           {req.descriptor && (
             <p className="text-sm text-muted-foreground leading-snug mb-2">{req.descriptor}</p>
           )}
@@ -159,7 +266,15 @@ function CompanyRow({
             <span className="text-xs text-muted-foreground ml-auto">{timeAgo(req.submittedAt)}</span>
           </div>
         </div>
-        <RowActions busy={busy} onApprove={onApprove} onReject={onReject} />
+        <div className="flex gap-2 flex-shrink-0">
+          {onEdit && (
+            <Button variant="outline" size="sm" disabled={busy} onClick={onEdit}>
+              <Pencil className="h-4 w-4" />
+              Edit as draft
+            </Button>
+          )}
+          <RowActions busy={busy} onApprove={onApprove} onReject={onReject} />
+        </div>
       </div>
     </div>
   );
@@ -167,9 +282,12 @@ function CompanyRow({
 
 export default function ModerationQueuePage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [eventItems, setEventItems] = React.useState<QueueEvent[] | null>(null);
   const [companyItems, setCompanyItems] = React.useState<QueueCompany[] | null>(null);
   const [draftItems, setDraftItems] = React.useState<Draft[] | null>(null);
+  const [signupItems, setSignupItems] = React.useState<QueueSignup[] | null>(null);
+  const [editingSignup, setEditingSignup] = React.useState<QueueSignup | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
@@ -179,11 +297,13 @@ export default function ModerationQueuePage() {
       const data = (await res.json()) as QueueResponse;
       setEventItems(data.events.map(toQueueEvent));
       setCompanyItems(data.requests.map(toQueueCompany));
-      setDraftItems(data.drafts.map(({ slug, name, descriptor, website }) => ({ slug, name, descriptor, website })));
+      setDraftItems(data.drafts.map(({ slug, name, descriptor, website, savedAt }) => ({ slug, name, descriptor, website, savedAt })));
+      setSignupItems(data.signups.map(toQueueSignup));
     } catch {
       setEventItems([]);
       setCompanyItems([]);
       setDraftItems([]);
+      setSignupItems([]);
     }
   }, []);
   React.useEffect(() => {
@@ -193,9 +313,10 @@ export default function ModerationQueuePage() {
   const events = eventItems ?? [];
   const companies = companyItems ?? [];
   const drafts = draftItems ?? [];
+  const signups = signupItems ?? [];
   const addReqs = companies.filter((c) => c.type === 'add');
   const claimReqs = companies.filter((c) => c.type === 'claim');
-  const loading = eventItems === null || companyItems === null || draftItems === null;
+  const loading = eventItems === null || companyItems === null || draftItems === null || signupItems === null;
   const total = events.length + companies.length + drafts.length;
 
   async function resolveEvent(ev: QueueEvent, action: 'approve' | 'reject') {
@@ -232,6 +353,51 @@ export default function ModerationQueuePage() {
     if (action === 'approve')
       toast({ title: `${noun} approved`, description: `${req.name} ownership granted.` });
     else toast({ title: `${noun} rejected`, description: `${req.name} was declined.`, variant: 'destructive' });
+  }
+
+  // Approve the request (which creates the hidden draft) then open it in the
+  // full edit form so the admin can enrich it like a regular entry before publishing.
+  async function editCompany(req: QueueCompany) {
+    setBusyId(req.id);
+    const res = await authedFetch(`/api/requests/${req.id}/approve`, { method: 'POST' });
+    if (!res.ok) {
+      setBusyId(null);
+      toast({ title: 'Action failed', description: await errorMessage(res), variant: 'destructive' });
+      return;
+    }
+    const { slug } = (await res.json().catch(() => ({}))) as { slug?: string };
+    if (!slug) {
+      setBusyId(null);
+      toast({ title: 'Action failed', description: 'Draft was created without a reference.', variant: 'destructive' });
+      return;
+    }
+    router.push(`/admin/companies/${slug}/edit`);
+  }
+
+  async function saveSignup(s: QueueSignup) {
+    setBusyId(s.id);
+    const res = await authedFetch(`/api/admin/signups/${s.id}`, { method: 'PATCH', body: JSON.stringify(s) });
+    setBusyId(null);
+    if (!res.ok) {
+      toast({ title: 'Action failed', description: await errorMessage(res), variant: 'destructive' });
+      return;
+    }
+    setSignupItems((prev) => (prev ?? []).map((x) => (x.id === s.id ? s : x)));
+    setEditingSignup(null);
+    toast({ title: 'Signup updated', description: `${s.name || 'Signup'} saved.` });
+  }
+
+  async function deleteSignup(s: QueueSignup) {
+    if (!window.confirm(`Delete ${s.name || 'this signup'}? This cannot be undone.`)) return;
+    setBusyId(s.id);
+    const res = await authedFetch(`/api/admin/signups/${s.id}`, { method: 'DELETE' });
+    setBusyId(null);
+    if (!res.ok) {
+      toast({ title: 'Action failed', description: await errorMessage(res), variant: 'destructive' });
+      return;
+    }
+    setSignupItems((prev) => (prev ?? []).filter((x) => x.id !== s.id));
+    toast({ title: 'Signup deleted', description: `${s.name || 'Signup'} was removed.` });
   }
 
   async function publishDraft(draft: Draft) {
@@ -282,6 +448,7 @@ export default function ModerationQueuePage() {
           <TabsTrigger value="add">Add requests ({addReqs.length})</TabsTrigger>
           <TabsTrigger value="claims">Claim requests ({claimReqs.length})</TabsTrigger>
           <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
+          <TabsTrigger value="community">Community ({signups.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="events" className="mt-6">
@@ -352,6 +519,7 @@ export default function ModerationQueuePage() {
                   busy={busyId === req.id}
                   onApprove={() => resolveCompany(req, 'approve')}
                   onReject={() => resolveCompany(req, 'reject')}
+                  onEdit={() => editCompany(req)}
                 />
               ))}
             </div>
@@ -411,6 +579,12 @@ export default function ModerationQueuePage() {
                           {draft.website}
                         </div>
                       )}
+                      {draft.savedAt && (
+                        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          Saved {format(parseISO(draft.savedAt), "d MMM yyyy, HH:mm")}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <Button variant="outline" size="sm" asChild>
@@ -427,7 +601,70 @@ export default function ModerationQueuePage() {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="community" className="mt-6">
+          {signups.length === 0 ? (
+            <EmptyState
+              icon={Check}
+              title="No community signups"
+              body="Everyone who submits the “Join our community” form appears here with all their details."
+            />
+          ) : (
+            <div className="overflow-x-auto border border-border">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-3 py-2 font-semibold">Name</th>
+                    <th className="px-3 py-2 font-semibold">Email</th>
+                    <th className="px-3 py-2 font-semibold">WhatsApp</th>
+                    <th className="px-3 py-2 font-semibold">Role</th>
+                    <th className="px-3 py-2 font-semibold">Organisation</th>
+                    <th className="px-3 py-2 font-semibold">Working on</th>
+                    <th className="px-3 py-2 font-semibold">Status</th>
+                    <th className="px-3 py-2 font-semibold whitespace-nowrap">Submitted</th>
+                    <th className="px-3 py-2 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {signups.map((s) => (
+                    <tr key={s.id} className="border-b border-border/60 last:border-0 align-top">
+                      <td className="px-3 py-2 font-semibold">{s.name || '—'}</td>
+                      <td className="px-3 py-2 break-all">{s.email || '—'}</td>
+                      <td className="px-3 py-2 whitespace-nowrap tabular-nums">{s.whatsapp || '—'}</td>
+                      <td className="px-3 py-2">{s.role || '—'}</td>
+                      <td className="px-3 py-2">{s.org || '—'}</td>
+                      <td className="px-3 py-2 min-w-[220px] text-muted-foreground">{s.working || '—'}</td>
+                      <td className="px-3 py-2">{s.status || '—'}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                        {format(parseISO(s.submittedAt), 'd MMM yyyy, HH:mm')}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex justify-end gap-1.5">
+                          <Button variant="outline" size="sm" disabled={busyId === s.id} onClick={() => setEditingSignup(s)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-destructive" disabled={busyId === s.id} onClick={() => deleteSignup(s)}>
+                            {busyId === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
+      )}
+
+      {editingSignup && (
+        <SignupEditDialog
+          signup={editingSignup}
+          saving={busyId === editingSignup.id}
+          onSave={saveSignup}
+          onClose={() => setEditingSignup(null)}
+        />
       )}
     </div>
   );

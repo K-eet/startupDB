@@ -13,12 +13,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [pendingEvents, requestsSnap, draftsSnap] = await Promise.all([
+    const [pendingEvents, requestsSnap, draftsSnap, signupsSnap] = await Promise.all([
       listPendingEvents(),
       adminDb.collection('companyRequests').where('status', '==', 'pending_review').get(),
       // User-submitted companies awaiting enrichment + publish (single-field
       // equality → auto-indexed).
       adminDb.collection('companies').where('published', '==', false).get(),
+      // 'Join our community' CTA signups — everyone, newest first.
+      adminDb.collection('communitySignups').get(),
     ]);
 
     // Attach the submitter's email (admin-only view) by resolving the Auth
@@ -53,10 +55,29 @@ export async function GET(request: NextRequest) {
         descriptor: (d.data()['One-line company description'] as string) ?? '',
         website: (d.data()['Website URL'] as string) ?? '',
         createdAt: (d.data().createdAt as string) ?? null,
+        // When the admin last saved the draft; falls back to createdAt if never edited.
+        savedAt: (d.data().updatedAt as string) ?? (d.data().createdAt as string) ?? null,
       }))
       .sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
 
-    return NextResponse.json({ events, requests, drafts });
+    const signups = signupsSnap.docs
+      .map((d) => {
+        const s = d.data();
+        return {
+          id: d.id,
+          name: (s.name as string) ?? '',
+          email: (s.email as string) ?? '',
+          whatsapp: (s.whatsapp as string) ?? '',
+          org: (s.org as string) ?? '',
+          role: (s.role as string) ?? '',
+          working: (s.working as string) ?? '',
+          status: (s.status as string) ?? '',
+          submittedAt: s.submittedAt?.toMillis?.() ?? null,
+        };
+      })
+      .sort((a, b) => (b.submittedAt ?? 0) - (a.submittedAt ?? 0));
+
+    return NextResponse.json({ events, requests, drafts, signups });
   } catch (error) {
     console.error('Failed to load moderation queue:', error);
     return NextResponse.json({ error: 'Failed to load queue.' }, { status: 500 });
