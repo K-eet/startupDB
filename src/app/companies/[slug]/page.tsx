@@ -2,6 +2,8 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { adminDb } from '@/lib/firebase-admin';
+import { SITE_URL } from '@/lib/site';
+import { companyJsonLd } from '@/lib/company-jsonld';
 import type { Company } from '@/types/company';
 import { CompanyProfilePage } from './company-profile-page';
 
@@ -54,5 +56,15 @@ export default async function CompanyPage({
   const { slug } = await params;
   const company = await getCompany(slug);
   if (!company) notFound();
-  return <CompanyProfilePage company={company} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(companyJsonLd(company, SITE_URL)),
+        }}
+      />
+      <CompanyProfilePage company={company} />
+    </>
+  );
 }

@@ -21,3 +21,6 @@ env:
     secret: NEXT_PUBLIC_FIREBASE_APP_ID
   - variable: ADMIN_EMAILS
     secret: ADMIN_EMAILS
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://startupdb.my
+
