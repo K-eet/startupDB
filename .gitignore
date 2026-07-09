@@ -63,3 +63,5 @@ google-cloud-cli-*.tar.gz
 
 # understand-anything knowledge graph (local tooling, not for repo)
 .understand-anything/
+# Local-only service account key for firebase-admin (never commit)
+.secrets/
