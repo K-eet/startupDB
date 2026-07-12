@@ -389,7 +389,7 @@ export default function CategorisationPage() {
           {/* CTA */}
           <div className="mt-14 flex flex-wrap items-center justify-between gap-6 bg-foreground px-8 py-9 text-background">
             <div>
-              <h3 className="m-0 mb-1.5 text-xl font-bold tracking-tight">Where's my Startup?</h3>
+              <h3 className="m-0 mb-1.5 text-xl font-bold tracking-tight">Where&apos;s my Startup?</h3>
               <p className="m-0 max-w-[46ch] text-sm text-background/70">
                 We aim to be Malaysia&apos;s most comprehensive directory of technology companies. Add yours now!
               </p>
