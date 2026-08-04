@@ -34,7 +34,13 @@ async function fetchDirectoryCompanies(): Promise<Company[]> {
   const snapshot = await adminDb
     .collection('companies')
     .orderBy(new FieldPath('Company Name'))
-    .select(...DIRECTORY_FIELDS.map((f) => new FieldPath(f)), new FieldPath('published'))
+    // `published` gates draft visibility; `updatedAt` feeds sitemap <lastmod>.
+    // Neither is part of the DIRECTORY_FIELDS UI contract.
+    .select(
+      ...DIRECTORY_FIELDS.map((f) => new FieldPath(f)),
+      new FieldPath('published'),
+      new FieldPath('updatedAt')
+    )
     .get();
 
   // Exclude user-submitted drafts (published === false). Existing companies
