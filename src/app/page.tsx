@@ -1,75 +1,73 @@
-'use client';
+import type { Metadata } from 'next';
+import { getDirectoryCompanies } from '@/lib/directory-data';
+import { directoryStats } from '@/lib/directory-stats';
+import { directoryJsonLd } from '@/lib/company-jsonld';
+import { SITE_URL } from '@/lib/site';
+import { HomeClient } from './home-client';
 
-import * as React from 'react';
-import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
+// The Admin SDK has no credentials at build time (same reason as sitemap.ts), so
+// this can't be a prerendered ISR page. Rendering is per-request but the
+// Firestore sweep behind getDirectoryCompanies is cached for an hour.
+// ponytail: origin-rendered every hit. Add a CDN Cache-Control header in
+// next.config if TTFB becomes the bottleneck.
+export const dynamic = 'force-dynamic';
 
-const StartupDirectory = dynamic(() => import('@/app/components/startup-directory'), {
-  loading: () => (
-    <div className="flex items-center justify-center py-24">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-    </div>
-  ),
-});
+// Cards server-rendered into the HTML. Matches RESULTS_PAGE_SIZE in
+// startup-directory so hydration doesn't change what's on screen. Deliberately
+// not the whole corpus: App Hosting doesn't gzip HTML, so inlining 2,400+
+// companies would put ~1.4 MB uncompressed on every request. The rest arrives
+// from /api/companies (gzipped, CDN-cached) and every company is crawlable via
+// /companies regardless.
+const SSR_CARDS = 24;
 
-const VCDirectory = dynamic(() => import('@/app/components/vc-directory'), {
-  loading: () => (
-    <div className="flex items-center justify-center py-24">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-    </div>
-  ),
-});
-import { initialVCFirms } from '@/lib/initial-data';
-import { useAllCompanies } from '@/hooks/useAllCompanies';
-import { useToast } from '@/hooks/use-toast';
-import { AppShell } from '@/app/components/app-shell';
-import Link from 'next/link';
+const DESCRIPTION =
+  'Browse technology companies operating in Malaysia — filter by sector, sub-sector, company type and location.';
+const TITLE = 'StartupDB — Malaysian Startup & Technology Company Directory';
 
-export default function Home() {
-  const [activeTab, setActiveTab] = React.useState<'startups' | 'vcs' | 'events'>('startups');
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: '/',
+    siteName: 'StartupDB',
+    type: 'website',
+  },
+  twitter: { card: 'summary', title: TITLE, description: DESCRIPTION },
+};
 
-  // Fetch companies from Firestore
-  const { companies, loading: companiesLoading, error: companiesError } = useAllCompanies();
-
-  const { toast } = useToast();
-
-  React.useEffect(() => {
-    if (companiesError) {
-      toast({
-        variant: 'destructive',
-        title: 'Error Loading Companies',
-        description: companiesError,
-      });
-    }
-  }, [companiesError, toast]);
-
-  const pageName = activeTab === 'startups' ? 'Directory' : 'VC Directory';
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const companies = await getDirectoryCompanies();
+  const stats = directoryStats(companies);
+  const initialCompanies = companies.slice(0, SSR_CARDS);
 
   return (
-    <AppShell
-      pageName={pageName}
-      description={
-        <>
-          <p>The StartupDB Directory is a structured, continuously updated list of technology companies operating in Malaysia.</p>
-          <Link href="/categorisation" className="text-primary hover:underline">
-            Learn how we categorise technology companies →
-          </Link>
-        </>
-      }
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-    >
-      <div>
-        {activeTab === 'startups' && (
-          <StartupDirectory
-            data={companies}
-            loading={companiesLoading}
-          />
-        )}
-        {activeTab === 'vcs' && (
-          <VCDirectory data={initialVCFirms} />
-        )}
-      </div>
-    </AppShell>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            directoryJsonLd(initialCompanies, SITE_URL, {
+              path: '/',
+              name: 'StartupDB Directory',
+              description: DESCRIPTION,
+              total: stats.total,
+            })
+          ),
+        }}
+      />
+      <HomeClient
+        initialCompanies={initialCompanies}
+        stats={stats}
+        initialTab={tab === 'vcs' ? 'vcs' : 'startups'}
+      />
+    </>
   );
 }

@@ -1,15 +1,17 @@
 import type { MetadataRoute } from 'next';
-import { adminDb } from '@/lib/firebase-admin';
+import { getDirectoryCompanies } from '@/lib/directory-data';
 import { SITE_URL } from '@/lib/site';
 
 // Admin SDK needs runtime credentials — generate at request time, not at build
-// (mirrors /api/companies). Crawlers hit this rarely, so the per-request read of
-// ~2.5k Slug-only docs is fine.
+// (mirrors /api/companies). Shares the hour-cached corpus with / and /companies,
+// so this costs no extra Firestore reads — and, unlike the old Slug-only sweep,
+// it excludes unpublished drafts, which 404 on their detail page.
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     '',
+    '/companies',
     '/categorisation',
     '/community',
     '/events',
@@ -19,9 +21,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'weekly',
   }));
 
-  const snapshot = await adminDb.collection('companies').select('Slug').get();
-  const companyRoutes: MetadataRoute.Sitemap = snapshot.docs
-    .map((doc) => (doc.data() as { Slug?: string }).Slug)
+  const companies = await getDirectoryCompanies();
+  const companyRoutes: MetadataRoute.Sitemap = companies
+    .map((company) => company.Slug)
     .filter((slug): slug is string => Boolean(slug))
     .map((slug) => ({
       url: `${SITE_URL}/companies/${slug}`,

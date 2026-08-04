@@ -29,9 +29,14 @@ export function invalidateCompaniesCache(): void {
 // Hits /api/companies (CDN-cached, slim directory fields, gzipped) over plain
 // fetch — deliberately NO Firebase client SDK import, so the directory and admin
 // list don't bundle Firestore. Full Firestore reads live in useCompany/useCompanies.
-export function useAllCompanies(): UseAllCompaniesResult {
-  const [companies, setCompanies] = useState<Company[]>(companiesCache ?? []);
-  const [loading, setLoading] = useState(companiesCache === null);
+//
+// `initial` is the server-rendered first page of companies (see app/page.tsx).
+// When present the hook starts populated and not-loading, so the SSR'd cards
+// stay on screen through hydration instead of flashing a spinner; the full
+// corpus swaps in when the fetch lands.
+export function useAllCompanies(initial: Company[] = []): UseAllCompaniesResult {
+  const [companies, setCompanies] = useState<Company[]>(companiesCache ?? initial);
+  const [loading, setLoading] = useState(companiesCache === null && initial.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,7 +55,9 @@ export function useAllCompanies(): UseAllCompaniesResult {
       });
     }
 
-    setLoading(true);
+    // Only spin if there's nothing to show — with server-rendered initial data
+    // the list stays visible while the full corpus loads in the background.
+    setLoading(initial.length === 0);
     setError(null);
 
     companiesFetchPromise
@@ -66,7 +73,7 @@ export function useAllCompanies(): UseAllCompaniesResult {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [initial.length]);
 
   return {
     companies,

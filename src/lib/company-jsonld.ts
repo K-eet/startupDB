@@ -78,3 +78,54 @@ export function companyJsonLd(company: Company, siteUrl: string) {
     '@graph': [organization, breadcrumb],
   };
 }
+
+/**
+ * JSON-LD for a directory listing page (/ and /companies): who publishes the
+ * directory, how big it is, and an ItemList of the companies rendered on the
+ * page. This is what makes the directory citable as a source rather than just
+ * crawlable. `path` is the page's path ('' for the home page).
+ */
+export function directoryJsonLd(
+  companies: Pick<Company, 'Company Name' | 'Slug'>[],
+  siteUrl: string,
+  opts: { path: string; name: string; description: string; total: number }
+) {
+  const pageUrl = `${siteUrl}${opts.path}`;
+
+  const publisher = {
+    '@type': 'Organization',
+    '@id': `${siteUrl}#organization`,
+    name: 'StartupDB',
+    url: siteUrl,
+    description:
+      'A structured, continuously updated directory of technology companies operating in Malaysia.',
+  };
+
+  const collection = {
+    '@type': 'CollectionPage',
+    '@id': pageUrl,
+    url: pageUrl,
+    name: opts.name,
+    description: opts.description,
+    isPartOf: { '@id': `${siteUrl}#organization` },
+    mainEntity: {
+      '@type': 'ItemList',
+      // numberOfItems is the whole corpus; itemListElement is what this page
+      // actually renders, so the two legitimately differ.
+      numberOfItems: opts.total,
+      itemListElement: companies
+        .filter((c) => c.Slug)
+        .map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: c['Company Name'],
+          url: `${siteUrl}/companies/${c.Slug}`,
+        })),
+    },
+  };
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [publisher, collection],
+  };
+}

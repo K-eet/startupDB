@@ -1,47 +1,15 @@
 import { gzipSync } from 'zlib';
 import { NextRequest, NextResponse } from 'next/server';
-import { FieldPath } from 'firebase-admin/firestore';
-import { adminDb } from '@/lib/firebase-admin';
-import type { Company } from '@/types/company';
+import { getDirectoryCompanies } from '@/lib/directory-data';
 
 // Must not be prerendered at build time — the Admin SDK needs runtime credentials.
-// Caching is handled by the CDN via the Cache-Control header below.
+// Caching is handled by the CDN via the Cache-Control header below, plus the
+// hour-long server cache inside getDirectoryCompanies (shared with / and /companies).
 export const dynamic = 'force-dynamic';
-
-// Only the fields the directory, filters, dashboard and admin list actually use.
-// Heavy fields (Description, AI Reasoning, Social Media, ...) are excluded —
-// fetching full documents was ~14 MB for 2,400+ companies.
-const DIRECTORY_FIELDS = [
-  'StartupDB_ID',
-  'Slug',
-  'Company Name',
-  'One-line company description',
-  'Industry',
-  'Sub-Industry',
-  'Company Type',
-  'Primary Technology',
-  'Sub-Technology',
-  'Headquarters Country',
-  'Headquarters State',
-  'Headquarters City',
-  'Founded Year',
-];
 
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await adminDb
-      .collection('companies')
-      .orderBy(new FieldPath('Company Name'))
-      .select(...DIRECTORY_FIELDS.map((f) => new FieldPath(f)), new FieldPath('published'))
-      .get();
-
-    // Exclude user-submitted drafts (published === false). Existing companies
-    // have no `published` field, so they're included by default. Filtered in
-    // memory rather than via a query so a `!=`/missing-field filter doesn't drop
-    // the un-flagged legacy docs.
-    const companies = snapshot.docs
-      .filter((doc) => doc.data().published !== false)
-      .map((doc) => doc.data() as Company);
+    const companies = await getDirectoryCompanies();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

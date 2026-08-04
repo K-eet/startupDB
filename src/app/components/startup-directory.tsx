@@ -18,9 +18,14 @@ import {
 } from '@/lib/filter-categories';
 import { normalizeCompanyName, sanitizeSearchInput, MAX_SEARCH_LENGTH } from '@/lib/utils';
 import { DirectoryDashboard } from './directory-dashboard';
+import type { DirectoryStats } from '@/lib/directory-stats';
 
 type StartupDirectoryProps = {
   data: Company[];
+  /** Whole-corpus figures from the server. `data` starts as just the first page
+      of cards (so the HTML stays small) and grows once the client fetch lands —
+      the headline counts come from here so they're correct in either state. */
+  stats: DirectoryStats;
   loading?: boolean;
   searchBar?: React.ReactNode;
 };
@@ -36,7 +41,7 @@ type HierarchicalFilter = {
 // makes the initial paint and every keystroke in search take seconds
 const RESULTS_PAGE_SIZE = 24;
 
-export default function StartupDirectory({ data, loading = false, searchBar }: StartupDirectoryProps) {
+export default function StartupDirectory({ data, stats, loading = false, searchBar }: StartupDirectoryProps) {
   // Filter section open/close state
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
     industry: true,
@@ -770,13 +775,16 @@ export default function StartupDirectory({ data, loading = false, searchBar }: S
         )}
 
         {/* Dashboard — stat cards + sector grid */}
-        {!hasActiveFilters && !searchQuery && <DirectoryDashboard data={data} onSectorClick={(industry) => handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, industry)} />}
+        {!hasActiveFilters && !searchQuery && <DirectoryDashboard stats={stats} onSectorClick={(industry) => handleHierarchicalFilterToggle(industryFilters, setIndustryFilters, industry)} />}
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{filteredData.length}</span> of{' '}
-            <span className="font-semibold text-foreground">{data.length}</span> startups
+            <span className="font-semibold text-foreground">{Math.max(data.length, stats.total)}</span> startups
           </p>
+          <Link href="/companies" className="text-sm text-primary hover:underline">
+            Browse all {stats.total.toLocaleString()} companies A–Z →
+          </Link>
         </div>
 
         {loading ? (

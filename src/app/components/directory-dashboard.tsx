@@ -1,8 +1,6 @@
 'use client';
 
-import React from 'react';
-import type { Company } from '@/types/company';
-import { industryCategories } from '@/lib/filter-categories';
+import type { DirectoryStats } from '@/lib/directory-stats';
 
 const SECTOR_META: Record<string, { icon: string; bg: string }> = {
   'B2B':                      { icon: '💼', bg: 'bg-[#E6F1FB] dark:bg-blue-950/60' },
@@ -17,46 +15,14 @@ const SECTOR_META: Record<string, { icon: string; bg: string }> = {
 };
 
 interface DirectoryDashboardProps {
-  data: Company[];
+  /** Computed server-side over the whole corpus (see lib/directory-data.ts), so
+      these numbers are in the crawlable HTML rather than filled in after hydration. */
+  stats: DirectoryStats;
   onSectorClick: (industry: string) => void;
 }
 
-export function DirectoryDashboard({ data, onSectorClick }: DirectoryDashboardProps) {
-  const stats = React.useMemo(() => {
-    const cities = new Set(data.map((c) => c['Headquarters City']).filter(Boolean));
-    const years = data
-      .map((c) => Number(c['Founded Year']))
-      .filter((y) => y > 1950 && y <= new Date().getFullYear())
-      .sort((a, b) => a - b);
-    const mid = Math.floor(years.length / 2);
-    const medianYear = years.length === 0 ? 0
-      : years.length % 2 !== 0
-        ? years[mid]
-        : Math.round((years[mid - 1] + years[mid]) / 2);
-    const pctAfterMedian = years.length > 0
-      ? Math.round((years.filter((y) => y > medianYear).length / years.length) * 100)
-      : 0;
-    return {
-      total: data.length,
-      cities: cities.size,
-      sectors: Object.keys(industryCategories).length,
-      subSectors: Object.values(industryCategories).flat().length,
-      medianYear,
-      pctAfterMedian,
-    };
-  }, [data]);
-
-  const sectors = React.useMemo(() => {
-    return Object.keys(industryCategories)
-      .map((industry) => ({
-        name: industry,
-        count: data.filter((c) => c['Industry'] === industry).length,
-        pct: data.length > 0
-          ? Math.round((data.filter((c) => c['Industry'] === industry).length / data.length) * 100)
-          : 0,
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [data]);
+export function DirectoryDashboard({ stats, onSectorClick }: DirectoryDashboardProps) {
+  const sectors = stats.bySector;
 
   return (
     <div className="mb-6 space-y-4">

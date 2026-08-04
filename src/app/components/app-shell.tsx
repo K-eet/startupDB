@@ -90,11 +90,14 @@ export function AppShell({
     }
   };
 
-  const navItems = [
-    { label: 'Companies', tab: 'startups' },
-    { label: 'VCs', tab: 'vcs' },
-    { label: 'Events', tab: 'Events' },
-    { label: 'Jobs', tab: 'Jobs', comingSoon: true },
+  // Every nav item carries a real href so crawlers have a followable path into
+  // the site. The tab items still switch in place via onClick when we're already
+  // on the home page; the href is what a crawler (or middle-click) follows.
+  const navItems: { label: string; tab: string; href: string; comingSoon?: boolean }[] = [
+    { label: 'Companies', tab: 'startups', href: '/' },
+    { label: 'VCs', tab: 'vcs', href: '/?tab=vcs' },
+    { label: 'Events', tab: 'Events', href: '/events' },
+    { label: 'Jobs', tab: 'Jobs', href: '/jobs', comingSoon: true },
   ];
 
   return (
@@ -108,34 +111,63 @@ export function AppShell({
             {/* Desktop navigation */}
             <nav className="hidden md:flex items-center gap-1">
               <span className="text-muted-foreground mx-2">|</span>
-              {navItems.map((item) => (
-                <button
-                  key={item.tab}
-                  onClick={item.comingSoon ? undefined : () => handleMenuClick(item.tab)}
-                  disabled={item.comingSoon}
-                  className={`relative px-3 py-1 text-sm font-medium transition-colors ${
-                    item.comingSoon
-                      ? 'text-muted-foreground/40 cursor-not-allowed'
-                      : (item.tab === 'startups' && activeTab === 'startups') ||
-                        (item.tab === 'vcs' && activeTab === 'vcs') ||
-                        (item.tab === 'Events' && activeTab === 'events')
-                      ? 'text-primary hover:text-primary'
-                      : 'text-muted-foreground hover:text-primary'
-                  }`}
-                >
-                  {item.label}
-                  {item.comingSoon && (
-                    <span className="ml-1 text-[10px] font-normal text-muted-foreground/60">soon</span>
-                  )}
-                </button>
-              ))}
+              {navItems.map((item) => {
+                const className = `relative px-3 py-1 text-sm font-medium transition-colors ${
+                  item.comingSoon
+                    ? 'text-muted-foreground/40 cursor-not-allowed'
+                    : (item.tab === 'startups' && activeTab === 'startups') ||
+                      (item.tab === 'vcs' && activeTab === 'vcs') ||
+                      (item.tab === 'Events' && activeTab === 'events')
+                    ? 'text-primary hover:text-primary'
+                    : 'text-muted-foreground hover:text-primary'
+                }`;
+                const label = (
+                  <>
+                    {item.label}
+                    {item.comingSoon && (
+                      <span className="ml-1 text-[10px] font-normal text-muted-foreground/60">soon</span>
+                    )}
+                  </>
+                );
+                if (item.comingSoon) {
+                  return (
+                    <span key={item.tab} className={className} aria-disabled="true">
+                      {label}
+                    </span>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.tab}
+                    href={item.href}
+                    onClick={(event) => {
+                      // Tab switches stay in place; let Events navigate normally.
+                      if (item.tab === 'startups' || item.tab === 'vcs') {
+                        if (window.location.pathname === '/') {
+                          event.preventDefault();
+                          onTabChange(item.tab as 'startups' | 'vcs');
+                        }
+                      }
+                    }}
+                    className={className}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+              <Link
+                href="/companies"
+                className="px-3 py-1 text-sm font-medium transition-colors text-muted-foreground hover:text-primary"
+              >
+                A–Z
+              </Link>
               {isAdmin && (
-                <button
-                  onClick={() => router.push('/admin')}
+                <Link
+                  href="/admin"
                   className="px-3 py-1 text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
                 >
                   Admin
-                </button>
+                </Link>
               )}
             </nav>
           </div>
