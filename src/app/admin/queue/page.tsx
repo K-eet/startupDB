@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { EmptyState } from '@/app/components/empty-state';
+import { DraftList } from '@/app/admin/components/draft-list';
 import { StatusPill } from '@/app/components/status-badges';
 import { useToast } from '@/hooks/use-toast';
 import { authedFetch, errorMessage } from '@/lib/api-client';
@@ -287,6 +288,7 @@ export default function ModerationQueuePage() {
   const [eventItems, setEventItems] = React.useState<QueueEvent[] | null>(null);
   const [companyItems, setCompanyItems] = React.useState<QueueCompany[] | null>(null);
   const [signupItems, setSignupItems] = React.useState<QueueSignup[] | null>(null);
+  const [draftCount, setDraftCount] = React.useState<number | null>(null);
   const [editingSignup, setEditingSignup] = React.useState<QueueSignup | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
 
@@ -314,7 +316,7 @@ export default function ModerationQueuePage() {
   const addReqs = companies.filter((c) => c.type === 'add');
   const claimReqs = companies.filter((c) => c.type === 'claim');
   const loading = eventItems === null || companyItems === null || signupItems === null;
-  const total = events.length + companies.length;
+  const total = events.length + companies.length + (draftCount ?? 0);
 
   async function resolveEvent(ev: QueueEvent, action: 'approve' | 'reject') {
     setBusyId(ev.id);
@@ -414,6 +416,7 @@ export default function ModerationQueuePage() {
       <p className="text-sm text-muted-foreground max-w-xl leading-relaxed mb-6">
         Pending events, new-company and claim requests land here. Approving an event publishes it;
         reviewing a new company opens the full edit page to enrich it before approving, saving as a draft, or deleting.
+        Approved companies awaiting enrichment live under Drafts.
       </p>
 
       {loading ? (
@@ -426,6 +429,7 @@ export default function ModerationQueuePage() {
           <TabsTrigger value="events">Events ({events.length})</TabsTrigger>
           <TabsTrigger value="add">Add requests ({addReqs.length})</TabsTrigger>
           <TabsTrigger value="claims">Claim requests ({claimReqs.length})</TabsTrigger>
+          <TabsTrigger value="drafts">Drafts{draftCount !== null ? ` (${draftCount})` : ''}</TabsTrigger>
           <TabsTrigger value="community">Community ({signups.length})</TabsTrigger>
         </TabsList>
 
@@ -524,6 +528,10 @@ export default function ModerationQueuePage() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="drafts" className="mt-6">
+          <DraftList onCount={setDraftCount} />
         </TabsContent>
 
         <TabsContent value="community" className="mt-6">

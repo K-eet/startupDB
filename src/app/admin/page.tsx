@@ -1,13 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import * as React from 'react';
 import { useAllCompanies } from '@/hooks/useAllCompanies';
 import { CompanyList } from './components/company-list';
+import { DraftList } from './components/draft-list';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Inbox } from 'lucide-react';
 
 export default function AdminPage() {
   const { companies, loading, error } = useAllCompanies();
+  // Draft count fills in once the Drafts tab has loaded (DraftList reports
+  // back via onCount). Published docs come from useAllCompanies, which
+  // deliberately excludes unpublished drafts, so this can't come from there.
+  const [draftCount, setDraftCount] = React.useState<number | null>(null);
 
   if (error) {
     return (
@@ -33,7 +40,22 @@ export default function AdminPage() {
           </Link>
         </Button>
       </div>
-      <CompanyList companies={companies} loading={loading} />
+      <Tabs defaultValue="published">
+        <TabsList>
+          <TabsTrigger value="published">
+            Published{!loading ? ` (${companies.length})` : ''}
+          </TabsTrigger>
+          <TabsTrigger value="drafts">
+            Drafts{draftCount !== null ? ` (${draftCount})` : ''}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="published" className="mt-6">
+          <CompanyList companies={companies} loading={loading} />
+        </TabsContent>
+        <TabsContent value="drafts" className="mt-6">
+          <DraftList onCount={setDraftCount} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
