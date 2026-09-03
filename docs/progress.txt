@@ -1,0 +1,448 @@
+STARTUPDB PROGRESS TRACKER
+Last Updated: 2026-08-04
+
+===== COMPLETED =====
+- Admin panel Drafts tab (2026-09-03)
+  - PROBLEM: approving an "Add a company" request creates a hidden draft
+    (published:false via createCompanyFromRequest), but the admin panel never
+    showed it — /admin lists via useAllCompanies -> /api/companies, which
+    deliberately excludes unpublished drafts, and the queue's old Drafts tab
+    was gone (current tabs: Events/Add/Claim/Community). Drafts were only
+    reachable via a direct /admin/companies/[slug]/edit URL from the review flow.
+  - Backend (all pre-existing, verified still in place — no changes needed):
+    published/userSubmitted flags on companies (types/company.ts),
+    createCompanyFromRequest (lib/company-db.ts) on add-approval, directory +
+    sitemap + detail-page exclusion of published===false, and Approve & publish
+    / Save as draft / Delete on the edit form.
+  - NEW GET /api/admin/companies (admin-only, Admin SDK, slim select field mask,
+    in-memory published===false filter so legacy docs stay safe, newest first).
+  - /admin now has Published / Drafts tabs (shadcn Tabs, counts in labels).
+    The shared DraftList component (new draft-list.tsx) has loading skeletons, error + empty states,
+    per-draft cards with descriptor/submitted age, and an Enrich link to the
+    full edit page where the admin publishes, re-saves, or deletes. Drafts fetch
+    lazily on first tab open; the tab count fills in via onCount (no double fetch).
+  - /admin/queue regained its Drafts tab too (was Events/Add/Claim/Community),
+    reusing the same DraftList + endpoint; its count feeds the "Awaiting review"
+    total. Same Drafts UI now lives in both places: queue for the review workflow,
+    /admin alongside the published list.
+  - Verified: tsc clean, npm test 24/24, eslint clean.
+
+- Directory crawlability: server-rendered content, link graph, metadata (2026-08-04)
+  - PROBLEM: view-source on prod showed an empty directory. The home page was a client
+    component fetching /api/companies after hydration, so raw HTML had "Companies listed"
+    blank, every sector card 0, and ZERO company anchors. Non-JS crawlers (Google's second
+    wave, ChatGPT, Perplexity, Claude) saw a shell. Nav was <button>, not <a>.
+  - Company detail pages were ALREADY fine (d6459db): SSR content + title/canonical/OG +
+    Organization/BreadcrumbList JSON-LD. sitemap.xml and robots.txt already live. The real
+    blast radius was the directory index only.
+  - NEW src/lib/directory-data.ts: the Admin-SDK directory query (moved out of
+    /api/companies) wrapped in unstable_cache(revalidate 3600). One Firestore sweep per hour
+    now serves /, /companies, /sitemap.xml AND /api/companies. Pure aggregate maths split
+    into src/lib/directory-stats.ts (no firebase-admin import, so `node --test` can load it).
+  - app/page.tsx is now a Server Component (force-dynamic; the Admin SDK has no build-time
+    credentials, same constraint sitemap.ts already documented). It server-renders real
+    stat cards (2,462 / 276 cities / median 2018), real per-sector counts, and the first 24
+    company cards as <a href> links. Interactive half moved to app/home-client.tsx.
+  - REMOVED the next/dynamic wrapper around StartupDirectory/VCDirectory. This was the
+    actual blocker: a dynamic() boundary streams a Suspense spinner into the document and
+    parks the real markup in a <div hidden> that an inline $RC script reveals — invisible
+    without JS. Costs +6 kB First Load JS on /; worth it.
+  - NEW app/companies/page.tsx: server-rendered A-Z index, all 2,462 companies as plain
+    <a href>, no client JS. This is the crawlable link graph (and gives the existing
+    BreadcrumbList's /companies target a real page — it used to 404). Link styling hoisted
+    to the <ul> and JSON-LD ItemList sampled at 100, which took the page 1.68 MB -> 618 kB.
+  - Home page metadata: unique title, description, canonical, OG, Twitter + CollectionPage/
+    ItemList/Organization JSON-LD (new directoryJsonLd in lib/company-jsonld.ts).
+  - Nav is anchors now: Companies -> /, VCs -> /?tab=vcs (server-honoured), Events ->
+    /events, plus an A-Z link. Tab switches still happen in place via onClick when already
+    on /. Jobs is a <span aria-disabled> (still coming soon).
+  - sitemap.ts reuses the cached corpus: no extra reads, and it now excludes unpublished
+    drafts (it was listing them; they 404).
+  - Deliberately NOT inlining all 2,462 companies into the home page: App Hosting doesn't
+    gzip HTML (only /api/companies gzips itself), so that would put ~1.4 MB uncompressed on
+    every request. Home is 43 kB -> 109 kB; the client still pulls the full corpus from the
+    gzipped, CDN-cached /api/companies for filtering.
+  - Verified with curl (no JS): / has real counts + 24 anchors, no $RC, no spinner;
+    /companies has 2,462 anchors; /?tab=vcs server-renders the VC tab; sitemap 2,468 URLs.
+    24/24 tests pass (5 new in directory-stats.test.ts), tsc + eslint clean.
+  - tsconfig gained allowImportingTsExtensions (noEmit, so nothing downstream changes) so
+    directory-stats.ts can import './filter-categories.ts' and still run under node --test.
+
+- Org accounts + hybrid event posting + admin moderation (2026-07-04)
+  - Auth model: ONE account type (Google sign-in). "Organization" is a role (owner/member)
+    a user holds on a company — no separate org login.
+  - Hybrid event posting: org-affiliated users post instantly (status 'live'); unaffiliated
+    users' posts enter a moderation queue ('pending_review'). Status is decided SERVER-side
+    from the caller's memberships — a client-supplied status is ignored. "Post as" a company
+    requires an approved membership on that slug (enforced server-side).
+  - Org membership via claim/join (reuses the companyRequests pipeline): claim on an unowned
+    company -> admin approves -> submitter becomes 'owner'; join on an already-owned company
+    -> an owner approves (admin fallback) -> 'member'. requestKind is derived at APPROVAL time
+    from the target's ownerUids (avoids a submit-time TOCTOU).
+  - Data model: new users/{uid} (memberships[] + memberSlugs[] flat mirror for the
+    array-contains roster query); companies gained ownerUids[], plus published + userSubmitted
+    on user-added entries; companyRequests gained uid + requestKind; new events collection
+    (StoredEvent: title/date/time/location/online/category/tags/status/ownerUid/postedByName/
+    companySlug?/companyName?/createdAt).
+  - All writes via Admin SDK server routes — NO firestore.rules or firestore.indexes changes
+    (respects CLAUDE.md #2/#7). Single-field auto-indexes only; status/ownerUid filtered in
+    memory to avoid composite indexes.
+  - ownerUids <-> users.memberships kept in sync inside ONE Firestore transaction (admin
+    tx.get(query) resolves the company by its Slug field); the last-owner guard runs inside
+    the same tx so a company can't be left ownerless (LastOwnerError -> 409).
+  - New-company ("add") approval creates a HIDDEN draft (published:false) + grants the
+    submitter ownership; admin enriches via the edit form then Publishes. Unpublished drafts
+    are excluded from /api/companies (public directory AND admin list, filtered in memory so
+    legacy docs without the field stay visible) and 404 on direct /companies/[slug] access.
+  - API routes: GET/POST /api/events, PATCH/DELETE /api/events/[id], POST .../approve;
+    POST /api/requests/[id]/approve|reject; GET /api/me; PATCH/DELETE
+    /api/orgs/[slug]/members/[uid]; GET /api/admin/queue; POST
+    /api/admin/companies/[slug]/publish. Extended POST /api/company-requests to record uid
+    when signed in. Shared client authedFetch attaches the Firebase ID token as a Bearer
+    header (verified server-side via requireUser; admin gate reuses ADMIN_EMAILS).
+  - Frontend wired to the backend: events page (live-events fetch, post/edit/delete, loading +
+    empty states), /me account dashboard (orgs + owner member management + my events + pending
+    requests + "Add your company"), admin moderation queue (Events / Add / Claim / Drafts tabs,
+    approve/reject/publish). RequestModal now uses authedFetch so an add submitted while signed
+    in links the request to the account (approval can then grant ownership).
+  - Events launch EMPTY by decision (no seed) — page shows an empty state until the first post.
+  - Tests: pure-logic units (event validators + gating, membership / last-owner / requestKind
+    decisions) — 17/17 via `npm test`. tsc + eslint clean; deployed to main (App Hosting).
+  - Design provenance: Claude Design handoff (claude.ai/design). Backend built first, then the
+    pre-scaffolded UI was wired to it. Spec + plan in docs/superpowers/specs/2026-07-02-*.
+  - Repo hygiene: added .gitattributes (* text=auto eol=lf) and normalized all text files to
+    LF, permanently fixing the whole-file CRLF phantom-diff noise in the worktree.
+
+- Prod-readiness: ESLint enabled + dead-code/dep cleanup (2026-07-01)
+  - Dead code deleted: src/lib/firestore.ts + src/lib/company-profiles.ts (0 importers).
+  - Dropped 3 heavy unused deps + their sole (unused) shadcn components: recharts+chart.tsx,
+    react-day-picker+calendar.tsx, embla-carousel-react+carousel.tsx (~7 MB off node_modules,
+    each dep imported only by its deleted component). KEPT the light radix palette (card,
+    table, tabs, tooltip, popover, sheet, switch, slider, etc.) per CLAUDE.md rule #3 —
+    they're tree-shaken so cost nothing and are the intended reuse palette.
+  - ESLint: installed eslint@8 + eslint-config-next@15 (next lint is deprecated in v15 and
+    breaks under eslint 9; eslint-config-next@16 pulls the flat-config that fails FlatCompat,
+    so pinned to the versions that match next 15.5). .eslintrc.json extends next/core-web-vitals;
+    `npm run lint` = `eslint .`. Lint is clean: 0 errors, 2 pre-existing warnings (hidden
+    sponsor-ticker <img>, layout Google-Fonts <link>).
+  - Flipped next.config.ts eslint.ignoreDuringBuilds -> false so the build now enforces lint
+    (warnings don't fail builds; 0 errors so build stays green).
+  - Verified: tsc clean, npm test 4/4, npm run build green (14/14, lint step runs).
+
+- Prod-readiness: deferred firebase/auth off the critical path + first validator tests (2026-07-01)
+  - contexts/auth-context.tsx: firebase/auth (~128 kB SDK chunk) is now lazy-loaded via
+    a cached import('firebase/auth') promise instead of a top-level import. It's out of
+    the shared-by-all chunk and referenced by 0 pages' synchronous first-load graph
+    (confirmed via react-loadable-manifest + app-build-manifest). Loads after hydration
+    when the provider's onAuthStateChanged effect fires.
+  - Mitigations: (1) app-shell header shows a Skeleton placeholder while auth loads so
+    logged-in users don't flash the sign-in icon before their avatar; (2) sign-in button
+    preloads the chunk on mouseenter/focus + provider warms it on mount, so signInWithPopup
+    stays inside the click's user-activation window (else the popup gets blocked).
+    ponytail: if strict Safari still blocks popups, switch to signInWithRedirect.
+  - Added first tests: src/lib/company-request.test.ts (node:test, no new deps) covering
+    email/phone/url validators + free-email rule. Run via `npm test` (Node 22 strips TS).
+    tsconfig excludes **/*.test.ts (the .ts-extension import node:test needs upsets tsc).
+  - Verified: tsc clean, npm test 4/4, next build green (14/14), prod server boots clean,
+    static routes 200 + bad slug 404. Not testable locally: live Google popup, Admin-SDK
+    dynamic routes (no ADC) — unchanged by this work.
+  - Still open for prod: install ESLint (build still ignoreDuringBuilds); dead-code cleanup.
+
+- Prod-readiness Tier 1: SEO/SSR for company pages + error boundaries (2026-06-22)
+  - companies/[slug]/page.tsx converted from a 'use client' shell (client useCompany
+    fetch) to a server component: server-fetches the company via Admin SDK,
+    generateMetadata (title/description/canonical/OG), notFound() for misses.
+    CompanyProfilePage stays a client child fed the company as a prop.
+    Bonus: route First Load JS dropped 285 -> 207 kB (no client Firestore SDK).
+    NOTE: doc is JSON round-tripped before crossing to the client component, so
+    Firestore Timestamps/refs don't break RSC serialization.
+  - Added app/error.tsx (route error boundary) + app/not-found.tsx (404 + notFound()).
+  - Added app/robots.ts (disallow /admin) + app/sitemap.ts (force-dynamic, Admin SDK
+    Slug-only read of all companies). Canonical origin centralized in src/lib/site.ts
+    (SITE_URL, overridable via NEXT_PUBLIC_SITE_URL); root layout sets metadataBase.
+  - Verified: tsc clean, next build green (/robots.txt, /sitemap.xml registered).
+    CANNOT verify locally: Admin SDK has no ADC here, so the company-page data fetch
+    and sitemap generation only run on deploy — smoke-test on App Hosting.
+  - Still open for prod: defer firebase/auth (change #1, ~102 kB shared chunk); no
+    tests; ESLint not installed (ignoreDuringBuilds); client-side filter scale ceiling.
+- Bundle perf: Firestore SDK off the homepage critical path (2026-06-22)
+  - Split useAllCompanies (directory data, fetch /api/companies only) out of
+    useCompanies.ts into its own firebase-free file (src/hooks/useAllCompanies.ts).
+    useCompany/useCompanies (real Firestore reads) stay in useCompanies.ts.
+  - Decoupled the firebase.ts barrel: it now exports only `app` (imports just
+    firebase/app), no longer eager-inits Firestore + Auth together. Each consumer
+    calls getFirestore(app) / getAuth(app) locally (useCompanies, admin-firestore,
+    firestore.ts, auth-context). Importing one SDK no longer drags in the other.
+  - Result (next build): firebase/firestore is now reachable only from
+    /companies/[slug] (285 kB) and /admin/companies/[slug]/edit (265 kB). Homepage/
+    directory First Load JS is 208 kB — ~77 kB lighter than it was carrying Firestore.
+  - NOT done: firebase/auth is still global via AuthProvider in the root layout, so
+    it remains in the ~102 kB shared chunk on every page. Deferring it is the next
+    lever (lazy-import firebase/auth inside AuthProvider).
+  - Verified: tsc --noEmit clean, next build green. Behavior unchanged (same db/auth
+    objects, initialized at point of use). Manual sign-in/out smoke still advisable.
+- Claim / Add a Company CTAs (2026-06-17)
+  - Built from a Claude Design handoff (StartupDB Company CTAs.html). One RequestModal
+    component (src/app/components/request-modal.tsx), two modes: 'claim' (from a company
+    profile, indexed to that listing's slug/name) and 'add' (from the menu, with Company
+    name / Website / one-line descriptor + live char counters 60/100/120).
+  - Both gate on a corporate email (common free domains + their subdomains rejected) and a
+    WhatsApp number (country-code dropdown, default +60). Single "How should we address
+    you?" name field above email. Rebuilt in shadcn Dialog + Tailwind (no inline styles),
+    not a copy of the prototype's inline-styled React.
+  - REAL backend (confirmed with user; design tool only simulated): new Firestore
+    'companyRequests' collection via POST /api/company-requests (Admin SDK, mirrors
+    /api/community/join). Server re-validates incl. the free-email block. No firestore.rules
+    change (Admin SDK bypasses rules — collection is server-write-only).
+  - Shared validators/constants/types in src/lib/company-request.ts (used by modal + route).
+  - Each request doc also carries newCompany boolean (true = "Add a company", false =
+    "Claim a company") for easy filtering alongside the type field.
+  - Removed all "Suggest an edit" buttons (categorisation CTA) + their copy references.
+  - Wired: app-shell "Add a Company" (desktop + mobile), categorisation page CTA, and the
+    company profile "Claim this Company" button.
+  - Spec: docs/superpowers/specs/2026-06-17-company-request-ctas-design.md
+  - Schema documented in docs/BACKEND_STRUCTURE.md (companyRequests).
+  - Verified: tsc --noEmit clean, next build clean (/api/company-requests registered).
+    NOTE: the Firestore write can only be exercised where Admin SDK creds exist (deployed /
+    App Hosting) — local has no ADC, so a local submit will 500 at the write step.
+- Directory search: perf + input hardening (2026-06-17)
+  - Count perf: getParentCount/getChildCount/getArchetypeCount did a full O(n)
+    .filter() scan over all ~2,462 companies, called once per filter option on every
+    render — a single keystroke triggered tens of full passes. Replaced with frequency
+    Maps built once per dataset (buildCounts, memoized); getters are now O(1) lookups.
+    Child-count keys use a NUL (\u0000) separator to avoid parent/child collisions.
+  - Search perf: applySearch re-lowercased all names on every pass across 5 datasets per
+    keystroke. Added nameIndex (Map<Company,string>) so names lowercase once per data load.
+  - Input hardening: new sanitizeSearchInput() + MAX_SEARCH_LENGTH in src/lib/utils.ts,
+    applied at directory + admin search boxes (coerce to string, strip C0/C1 control
+    chars incl. NUL, cap length; Input maxLength added). DEFENSE-IN-DEPTH ONLY — current
+    client-side substring search has no injection sink (no RegExp from input, no Firestore
+    where() fed search text, no HTML sink). Real protection deferred to Phase 7.2 (external
+    search): parameterized query API + server-side rate limiting + search-only API key.
+  - Implemented sanitizeSearchInput with char-code checks (not a control-char regex
+    literal) because the editor converts \u00xx escapes into raw control bytes in source.
+  - Verified: tsc --noEmit clean, next build clean.
+- /categorisation methodology page (2026-06-17) — fixes the home-page 404
+  - Home page linked "Learn how we categorise technology companies →" to /categorisation,
+    which didn't exist. Built the page (src/app/categorisation/page.tsx) from a Claude Design
+    handoff bundle, rebuilt in Tailwind + shadcn (no inline styles) instead of copying the
+    prototype HTML. Reuses AppShell for header/nav/theme/auth.
+  - AppShell got a backward-compatible hideTitle prop so the page supplies its own hero
+    instead of the directory title block.
+  - Sections: two-dimension framework (Industry sector × Company type) with a worked example,
+    9 industry sectors (counts/% from design, sub-sector lists pulled live from
+    filter-categories.ts — 66 total), 4 company types (real archetype names), 3-step method +
+    rules, FAQ (shadcn Accordion), CTA.
+  - Example chips colour-coded per the badge system (Industry=red, Company Type=blue).
+  - Spec: docs/superpowers/specs/2026-06-17-categorisation-page-design.md
+  - Verified: tsc --noEmit clean, next build clean (route prerendered static).
+- Load-time fix: slim /api/companies endpoint + render pagination (2026-06-11)
+  - Root cause of 15s+ loads: directory fetched ALL 2,462 company docs (~14 MB) from
+    Firestore client-side on every first visit, then rendered all 2,462 cards at once
+  - New GET /api/companies route: Admin SDK fetch with field mask (13 directory fields
+    only — drops Description, AI Reasoning, etc.), Cache-Control s-maxage=300 +
+    stale-while-revalidate so the App Hosting CDN serves it (~168 KB gzipped, ~85x less)
+  - Route gzips its own response (zlib) — App Hosting's Next adapter serves uncompressed
+    otherwise; Vary: Accept-Encoding set so the CDN caches variants correctly
+  - useAllCompanies now fetches /api/companies instead of Firestore directly
+    (also eliminates 2,462 Firestore reads per visitor)
+  - StartupDirectory renders 24 cards at a time with a "Load more" button
+    (was ~100k DOM nodes; search/filters now re-render instantly)
+  - NOTE: /api/companies field list must be kept in sync with fields used by
+    StartupDirectory, DirectoryDashboard, and admin CompanyList
+- Project scaffold (Next.js 15, Firebase, Tailwind, shadcn/ui)
+- Firestore integration with companies collection
+- Home page with tabbed interface
+- Startup directory with grid view
+- Hierarchical filter system (Industry, Technology, Company Type, Location)
+- Company detail pages (/companies/[slug])
+- Dark mode toggle
+- Mobile responsive design
+- VC directory (static data)
+- Events page (static data)
+- Sponsor ticker (placeholder logos)
+- Firebase App Hosting deployment
+- AI/Genkit removal (out of scope)
+- Phase 2.1: Batch ingest of 20 companies from StartupDB_Target_Batch1_enriched.csv
+  - Upload script: prioritize Company Overview, add enriched fields
+  - Filter fixes: FinTech casing, archetype spacing, Malaysia locations,
+    real Primary Technology categories, tech filter uses Primary Technology field
+  - Profile page: Technology badges split on semicolons
+  - Company interface: added Primary Technology optional field
+  - Deployed to Firebase App Hosting (secrets re-granted after key rotation)
+- Phase 1.1: Remove typescript.ignoreBuildErrors from next.config.ts
+  - Fixed 6 TS errors: Sub-Technology union type in filter, missing status on sample profiles,
+    companySize type assertion in CSV scripts
+  - Build now enforces TypeScript type checking
+- UI Polish + Performance (2026-04-03)
+  - Search bar added to main directory (searches Company Name + Description)
+  - Location filter expanded to all 16 Malaysian states (zero-count states visible)
+  - Technology filter hidden (code kept, commented out — may re-enable later)
+  - Sponsor banner hidden (code kept, commented out — may re-enable later)
+  - Body pb-12 padding removed (was only needed for sponsor ticker)
+  - Events and Jobs tabs greyed out with "soon" label (desktop nav + mobile menu)
+  - "Join our Community" CTA added next to "Add a Company" button (placeholder href="#")
+  - Login icon on company detail page wired to Google Auth (sign in/out + avatar dropdown)
+  - Admin page: A-Z letter index filter (clickable, empty letters dimmed, combines with search)
+  - Load time: session-level in-memory cache for useAllCompanies (no re-fetch on navigation)
+  - Load time: StartupDirectory + VCDirectory lazy-loaded via next/dynamic
+  - firestore.rules: added arvind@myspringboard.asia as admin (remember to update ADMIN_EMAILS secret too)
+- Phase 3: Google Auth + Admin Whitelist + Admin Dashboard
+  - Google Sign-In via Firebase Auth (popup flow)
+  - Auth context (src/contexts/auth-context.tsx) with useAuth() hook
+  - Server-side admin whitelist: /api/auth/admin-check verifies ID token + checks email against ADMIN_EMAILS env var
+  - email_verified check on admin-check route
+  - App shell: avatar dropdown when signed in, admin nav link for admins only
+  - Firestore rules tightened: writes restricted to verified admin emails (hardcoded in firestore.rules)
+  - Admin dashboard (/admin) with route guard (client-side redirect for non-admins)
+  - Company list with search, edit pages with full form (react-hook-form + zod)
+  - Admin Firestore helper queries by Slug field (not document ID) for updates
+  - ADMIN_EMAILS secret added to apphosting.yaml
+  - Google avatar image domain added to next.config.ts
+- Community page (/community) + WhatsApp signup flow
+  - Join form (src/app/community/components/join-form.tsx) with editable WhatsApp area code (default +60)
+  - Success card confirms submission with formatted "+<area code> <number>"
+  - API route /api/community/join validates input (name/email/area code/WhatsApp/role) and writes to
+    "communitySignups" Firestore collection via Admin SDK (adminDb added to lib/firebase-admin.ts)
+  - "Join our Community" CTA in app-shell now links to /community (was href="#")
+  - Desktop layout: sticky, vertically-centered form panel that fills viewport height while scrolling
+- Events nav unlocked + events calendar
+  - Removed "comingSoon" flag from Events nav item (desktop nav + mobile hamburger menu) — the
+    events page (src/app/events/page.tsx) already existed fully built, just wasn't linked
+  - Added rolling 4-week calendar (src/app/events/components/events-calendar.tsx) above the
+    Filters sidebar — Google/Apple Calendar style grid with today highlighted and a dot under
+    dates that have events
+  - Static demo events now use fixed offsets from today (2 days / 1 week+2 days / 1 month+3 days,
+    cycled across the 10 mock events) instead of the old "index * 2 + 1" spread, for a nicer demo
+
+===== IN PROGRESS =====
+[None currently]
+
+===== NEXT UP =====
+- TODO (deferred from the 2026-08-04 crawlability work, deliberately NOT done there):
+  tighten the Firestore CLIENT read rules. Directory reads are now server-side (Admin SDK
+  via /api/companies + the server-rendered pages); the browser no longer needs read access
+  to `companies`. useCompanies/useCompany (hooks/useCompanies.ts) are the last client-SDK
+  readers and appear unused — check, delete if so, then lock the rules down. Requires a
+  firestore.rules change, so per CLAUDE.md #2 discuss before touching.
+- DONE 2026-07-05: Publish toggle folded into the admin edit form. Approved "add" requests
+  still create BARE drafts (published:false, blank Industry/etc.), but the admin can now enrich
+  AND publish in one step — a "Visibility" Switch on company-edit-form.tsx writes `published`
+  alongside the other fields (legacy docs treated as published; company.ts gained `published?`/
+  `userSubmitted?`). The queue Drafts-tab Publish button stays as a quick action. Save toast
+  reflects live-vs-draft.
+- DONE 2026-07-05: Events calendar day-click filtering. Event-days in the 4-week grid are now
+  clickable (events-calendar.tsx: selectedDate/onSelectDate props, only dot-days are buttons,
+  selected day gets a ring, "Clear day"). events/page.tsx splits filtering — category+mine
+  drives the dots (stable), the visible list additionally narrows to the picked day; header
+  shows "on EEE, MMM d"; Clear filters resets the day too.
+- Notifications: approvers work the admin/owner queue; no email is sent to submitters on
+  approve/reject yet (out of scope for v1).
+- DONE 2026-07-04 (was Phase 7.3): invalidateCompaniesCache() exported from useAllCompanies.ts,
+  called after a company edit (company-edit-form.tsx) and after publishing a draft
+  (admin/queue publishDraft). In-tab cache now clears; the /api/companies CDN cache (s-maxage=300)
+  can still lag a change ~5 min at the edge.
+  (RETIRED 2026-07-04: server-side filtering + Algolia/Typesense search migration. The old
+   "migrate at 300-400" trigger assumed ~14 MB full-doc client fetches; the slim+gzip+CDN
+   /api/companies endpoint retired that premise. New trigger is payload-bound (~1 MB gzip ≈
+   8-10k companies), well past the 5,416 dataset ceiling. See IMPLEMENTATION_PLAN.md Phase 7.
+   Mid-string/fuzzy search stays deferred until a user actually asks.)
+
+===== BLOCKED =====
+[None currently]
+
+===== KNOWN ISSUES =====
+- app-shell.tsx:39 has setTimeout hack for tab switching
+- events/page.tsx now reads the Firestore events collection (GET /api/events); still groups by
+  date client-side to avoid hydration mismatch. Static lib/events-data.ts retains only types +
+  category color maps (initialEvents seed removed).
+- Publishing/editing a company can lag in the directory up to ~5 min at the CDN edge only:
+  /api/companies is CDN-cached (s-maxage=300). The in-tab useAllCompanies cache is now cleared
+  on edit/publish via invalidateCompaniesCache() (2026-07-04), so the local tab is fresh; the
+  residual delay is purely the shared CDN cache.
+- users/{uid}, events, companyRequests writes all go through the Admin SDK — no client-side
+  Firestore rules govern them; review before exposing any client read/write paths.
+- Firestore document IDs may not match Slug field values — always query by Slug field, not doc ID
+- Admin email whitelist hardcoded in firestore.rules AND the ADMIN_EMAILS secret — keep both in
+  sync; redeploy rules when changing the admin list.
+- (Resolved 2026-07-04) useAllCompanies session cache is cleared on admin edit/publish via
+  invalidateCompaniesCache(); only the /api/companies CDN cache (~5 min) can now delay a change.
+
+===== SESSION NOTES =====
+2026-07-04: Org accounts + hybrid event posting + admin moderation, end to end.
+  Design discussion first (feasibility of org-vs-individual logins) settled on ONE account type
+  with an org role, and HYBRID event gating (affiliated -> instant, unaffiliated -> moderated)
+  over the original "org-only events" idea, to avoid a cold-start empty events page. Decoupled
+  insight: event gating rides on a status field + the existing moderation queue, so events shipped
+  without the org system being a hard prerequisite. Built the BACKEND first (pure-logic libs +
+  Admin-SDK routes + tests), hardened the ownerUids<->memberships sync into a single transaction
+  with an in-transaction last-owner guard, THEN discovered the frontend was already scaffolded to
+  the Claude Design mockups on mock data — so the "frontend" work was wiring, not building.
+  Closed two gaps on request: new-company approval now creates a hidden draft + grants ownership
+  (admin enriches then publishes), and the "Claim your company" CTAs open the RequestModal. Split
+  the admin queue into Events/Add/Claim/Drafts tabs and hid unpublished drafts from the directory.
+  Deployed to main (push-to-main -> App Hosting). Repo hygiene: fixed the CRLF phantom-diff noise
+  permanently with .gitattributes + a one-time LF renormalization.
+2026-06-17: Implemented the Claim/Add company-request CTAs from a Claude Design handoff.
+  Key call: the design session ran "simulated backend" only, but the user's original ask was
+  "create a firebase database for requests" — confirmed and built the REAL backend (new
+  companyRequests collection, server-write-only via Admin SDK like communitySignups, so no
+  firestore.rules change). Rebuilt the prototype's inline-styled modal as a shadcn Dialog in
+  Tailwind. Claim mode indexes the request to the profile's slug. Free-email rejection +
+  validators live in a shared lib used by both the client modal and the API route. Couldn't
+  exercise the live write locally (no ADC) — verified via build/typecheck; write path runs on
+  App Hosting where Admin creds exist.
+2026-06-17: Search perf + input hardening pass on startup-directory.tsx. The dominant cost
+  was per-render O(options x n) count scans (each filter option re-scanned all ~2,462 rows);
+  replaced with precomputed frequency Maps (O(1) lookups). Also precomputed lowercased names
+  for search. Then hardened both search boxes with sanitizeSearchInput() — important caveat
+  recorded: this is defense-in-depth, NOT an injection fix (there is no injection sink in the
+  current client-side search). Real injection/abuse protection belongs in Phase 7.2 when search
+  moves to an external service — documented in IMPLEMENTATION_PLAN.md 7.2 (parameterized query
+  API + server-side rate limiting + search-only key).
+2026-06-17: Built the /categorisation methodology page, resolving the pre-existing 404 the
+  home page linked to. Implemented from a Claude Design handoff bundle but rebuilt natively in
+  Tailwind + shadcn (Accordion, Button) per project rules rather than copying the prototype's
+  inline-styled HTML. Reused AppShell (added a hideTitle prop). Sub-sector lists are sourced
+  live from filter-categories.ts; sector counts/% and the 4 company-type definitions are
+  hardcoded from the design (counts sum to the real 2,462 total). Not yet pushed/deployed.
+2026-06-11: Fixed 15s+ page loads. Collection had grown to 2,462 companies (docs planned a
+  server-side migration at 300-400) — every visitor pulled ~14 MB of full docs from
+  Firestore and rendered 2,462 cards. Added slim CDN-cached /api/companies (Admin SDK
+  field mask, 168 KB gzipped), pointed useAllCompanies at it, capped directory rendering
+  at 24 cards with "Load more". Verified locally with Playwright against the prod build:
+  data visible in ~0.4s, dashboard stats/sector clicks/filters/search all working.
+  Admin edits now appear after at most ~5 min (CDN s-maxage) + page refresh.
+  Pre-existing 404 spotted: home page links to /categorisation which doesn't exist.
+2026-06-08: Community signup flow + Events nav unlock + events calendar.
+  Built /community page (join form, success card, API route) writing to "communitySignups" via
+  Admin SDK; added editable WhatsApp area code (default +60) end-to-end (form -> API -> Firestore).
+  Resolved a real merge conflict in app-shell.tsx between local CTA-link changes and upstream's
+  desktop/mobile button restructuring — synced 3 commits behind origin/main.
+  Discovered events/page.tsx was already fully built but unreachable: "Events" nav item had
+  comingSoon: true. Removed the flag (desktop nav + mobile menu) to unlock the existing page.
+  Added a 4-week rolling calendar above the Events filters sidebar (event-dot indicators, today
+  highlighted) and switched static demo events to fixed day-offsets for a cleaner demo spread.
+2026-04-03: UI polish + performance pass complete.
+  Technology filter and sponsor banner hidden (not deleted — may return).
+  All 16 Malaysian states now in location filter, zero-count states visible.
+  Search bar added directly to StartupDirectory (internal state, not a prop).
+  Login icon on company detail page was a dead button — wired to useAuth().
+  Session-level cache added to useAllCompanies to avoid re-fetching on navigation.
+  Lazy-loaded heavy directory components via next/dynamic.
+  Added arvind@myspringboard.asia to firestore.rules admin whitelist.
+  NOTE (superseded 2026-07-04): the "migrate at 300-400" warning below assumed full-doc
+  client fetches; the later slim+gzip+CDN /api/companies endpoint retired that. No migration
+  planned — see NEXT UP and IMPLEMENTATION_PLAN.md Phase 7.
+2026-02-24: Phase 3 complete. Google Auth + admin whitelist + admin dashboard.
+  Security review caught: Firestore rules were too permissive (any auth user could write).
+  Fixed by hardcoding admin email in firestore.rules isAdmin() function.
+  Added email_verified check to admin-check API. Deployed rules before pushing.
+  Manual steps done: firebase apphosting:secrets:set ADMIN_EMAILS,
+  gcloud auth application-default login, firebase deploy --only firestore:rules.
+2026-02-24: Phase 1.1 complete. Removed ignoreBuildErrors, fixed all 6 TS errors.
+  Build now enforces type checking. ESLint flag kept since ESLint isn't installed.
+2026-02-08: Phase 2.1 complete. Ingested 20 companies from Batch1 enriched CSV.
+  Fixed filter categories to match real data, split tech badges, deployed to prod.
+  After key rotation, re-granted App Hosting secrets via:
+    firebase apphosting:secrets:grantaccess <secret-names> --backend studio
